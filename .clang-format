@@ -1,0 +1,9 @@
+BasedOnStyle: Chromium
+IndentWidth: 2
+UseTab: Never
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+BreakBeforeBraces: Allman
+BraceWrapping:
+  AfterFunction: true
+  SplitEmptyFunction: true
