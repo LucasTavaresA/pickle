@@ -210,6 +210,19 @@ int main()
 
   while (!WindowShouldClose())
   {
+    // key events
+    {
+      if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_Q))
+      {
+        MenuOpened = false;
+      }
+
+      if (IsKeyPressed(KEY_SPACE))
+      {
+        MenuOpened = !MenuOpened;
+      }
+    }
+
     // update screen information
     {
       ScreenWidth = GetScreenWidth();
@@ -327,11 +340,6 @@ int main()
       }
       else
       {
-        if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_Q))
-        {
-          MenuOpened = false;
-        }
-
         // draw the slices menu
         {
           float side_padding =
