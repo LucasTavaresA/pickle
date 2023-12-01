@@ -1,11 +1,13 @@
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "../raylib/src/raylib.h"
 
 #ifdef RELEASE
 #define LogIfTrue(...)
+#define LogIfBadContrast(...)
 #define LogSet(...)
 #define LogDraw(...)
 #else
@@ -13,6 +15,16 @@ static char LogMessage[1024] = "";
 
 #define LogIfTrue(result, formatStr, ...)                               \
   if (result)                                                           \
+  {                                                                     \
+    sprintf(LogMessage + strlen(LogMessage), formatStr, ##__VA_ARGS__); \
+  }
+
+#define LogIfBadContrast(backgroundColor, textColor, formatStr, ...)    \
+  int rDiff = abs(backgroundColor.r - textColor.r);                     \
+  int gDiff = abs(backgroundColor.g - textColor.g);                     \
+  int bDiff = abs(backgroundColor.b - textColor.b);                     \
+                                                                        \
+  if ((rDiff + gDiff + bDiff) / 3 < CONTRAST_LIMIT)                     \
   {                                                                     \
     sprintf(LogMessage + strlen(LogMessage), formatStr, ##__VA_ARGS__); \
   }
@@ -34,7 +46,7 @@ static char LogMessage[1024] = "";
   {                         \
     255, 122, 122, 255      \
   }
-#define CONTRAST_LIMIT 128
+#define CONTRAST_LIMIT 85
 
 static float ScreenWidth = 0;
 static float ScreenHeight = 0;
@@ -184,6 +196,11 @@ static void DrawRectangleGrid(float x,
       {
         DrawRectangleLinesEx(rect, rows[i].Columns[j].BorderThickness,
                              rows[i].Columns[j].BorderColor);
+
+        LogIfBadContrast(
+            rows[i].Columns[j].Color, rows[i].Columns[j].BorderColor,
+            "ERROR: Bad border contrast at [%.0f, %.0f] Grid, [%d, %d] Column",
+            x, y, i, j);
       }
 
       curX += colLength + padding;
