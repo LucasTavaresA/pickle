@@ -242,9 +242,6 @@ static void DrawWheel(float angle,
   float startAngle = 0;
   float endAngle = sectionSize;
 
-  // Draw a border on the wheel
-  DrawRing(center, radius - 2, radius + 2, 0, 360, 0, FOREGROUND_COLOR);
-
   for (int i = 0; i < slice_amount; i++)
   {
     DrawCircleSector(center, radius, startAngle, endAngle, 0, slices[i].Color);
@@ -260,6 +257,9 @@ static void DrawWheel(float angle,
     startAngle += sectionSize;
     endAngle += sectionSize;
   }
+
+  // Draw a border on the wheel
+  DrawRing(center, radius - 2, radius + 2, 0, 360, 0, FOREGROUND_COLOR);
 
   // Draw a circle in the middle of the wheel
   float inner_circle_radius = radius / 4;
