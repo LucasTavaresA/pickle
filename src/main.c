@@ -103,17 +103,27 @@ static const Color Colors[] = {
     MAGENTA,     // Magenta
 };
 
-// TODO(LucasTA): manipulating this in the code directly, maybe i should
-// operate on functions, or even make a separate file for this
-static bool SlicesDefault = true;
-static int SlicesCount = ColorsAmount;
-static char* Slices[ColorsAmount] = {
-    "Light Gray", "Gray",  "Dark Gray",  "Yellow", "Gold",   "Orange",
-    "Pink",       "Red",   "Maroon",     "Green",  "Lime",   "Dark Green",
-    "Sky Blue",   "Blue",  "Dark Blue",  "Purple", "Violet", "Dark Purple",
-    "Beige",      "Brown", "Dark Brown", "White",  "Black",  "Magenta",
-};
-static Color SlicesColors[ColorsAmount];
+#define DEFAULT_SLICES                                                      \
+  (Slice[])                                                                 \
+  {                                                                         \
+    {"Light Gray", LIGHTGRAY}, {"Gray", GRAY}, {"Dark Gray", DARKGRAY},     \
+        {"Yellow", YELLOW}, {"Gold", GOLD}, {"Orange", ORANGE},             \
+        {"Pink", PINK}, {"Red", RED}, {"Maroon", MAROON}, {"Green", GREEN}, \
+        {"Lime", LIME}, {"Dark Green", DARKGREEN}, {"Sky Blue", SKYBLUE},   \
+        {"Blue", BLUE}, {"Dark Blue", DARKBLUE}, {"Purple", PURPLE},        \
+        {"Violet", VIOLET}, {"Dark Purple", DARKPURPLE}, {"Beige", BEIGE},  \
+        {"Brown", BROWN}, {"Dark Brown", DARKBROWN}, {"White", WHITE},      \
+        {"Black", BLACK}, {"Magenta", MAGENTA},                             \
+  }
+
+typedef struct
+{
+  char* Name;
+  Color Color;
+} Slice;
+
+static Slice Slices[ColorsAmount];
+static int SlicesCount = 0;
 
 static bool IsPointInsideRect(int x,
                               int y,
@@ -222,6 +232,50 @@ static void DrawRectangleGrid(float x,
   }
 }
 
+static void DrawWheel(float angle,
+                      float radius,
+                      Slice* slices,
+                      int slice_amount)
+{
+  Vector2 center = {ScreenWidth / 2, ScreenHeight / 2};
+  float sectionSize = 360.0f / slice_amount;
+  float startAngle = 0;
+  float endAngle = sectionSize;
+
+  // Draw a border on the wheel
+  DrawRing(center, radius - 2, radius + 2, 0, 360, 0, FOREGROUND_COLOR);
+
+  for (int i = 0; i < slice_amount; i++)
+  {
+    DrawCircleSector(center, radius, startAngle, endAngle, 0, slices[i].Color);
+
+    float midAngle = ((startAngle + endAngle) / 2) - FontSize / 8;
+    Vector2 labelPosition = {
+        center.x + (radius / 2) * cosf(midAngle * DEG2RAD),
+        center.y + (radius / 2) * sinf(midAngle * DEG2RAD)};
+
+    DrawTextPro(Fonte, slices[i].Name, labelPosition, (Vector2){0.5f, 0.5f},
+                midAngle, FontSize, 2, GetForegroundColor(Colors[i]));
+
+    startAngle += sectionSize;
+    endAngle += sectionSize;
+  }
+
+  // Draw a circle in the middle of the wheel
+  float inner_circle_radius = radius / 4;
+
+  DrawCircleV(center, inner_circle_radius, FOREGROUND_COLOR);
+  DrawRing(center, inner_circle_radius, inner_circle_radius + 2, 0, 360, 0,
+           BACKGROUND_COLOR);
+
+  // Draw the wheel paddle
+  float paddle_bottom = center.y + radius + 20;
+
+  DrawTriangle((Vector2){center.x, paddle_bottom - 80},
+               (Vector2){center.x - 15, paddle_bottom},
+               (Vector2){center.x + 15, paddle_bottom}, RED);
+}
+
 int main()
 {
   SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT);
@@ -292,47 +346,18 @@ int main()
       {
         // Draw the wheel
         {
-          Vector2 center = {ScreenWidth / 2, ScreenHeight / 2};
-          float sectionSize = 360.0f / SlicesCount;
-          float startAngle = 0;
-          float endAngle = sectionSize;
-          float radius =
+          float wheel_radius =
               (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) / 2 -
               ScreenPadding;
 
-          // Draw a border on the wheel
-          DrawRing(center, radius - 2, radius + 2, 0, 360, 0, FOREGROUND_COLOR);
-
-          for (int i = 0; i < SlicesCount; i++)
+          if (SlicesCount == 0)
           {
-            DrawCircleSector(center, radius, startAngle, endAngle, 0,
-                             Colors[i]);
-
-            float midAngle = ((startAngle + endAngle) / 2) - FontSize / 8;
-            Vector2 labelPosition = {
-                center.x + (radius / 2) * cosf(midAngle * DEG2RAD),
-                center.y + (radius / 2) * sinf(midAngle * DEG2RAD)};
-
-            DrawTextPro(Fonte, Slices[i], labelPosition, (Vector2){0.5f, 0.5f},
-                        midAngle, FontSize, 2, GetForegroundColor(Colors[i]));
-
-            startAngle += sectionSize;
-            endAngle += sectionSize;
+            DrawWheel(0, wheel_radius, DEFAULT_SLICES, ColorsAmount);
           }
-
-          // Draw a circle in the middle of the whell
-          float inner_circle_radius = radius / 4;
-
-          DrawCircleV(center, inner_circle_radius, FOREGROUND_COLOR);
-          DrawRing(center, inner_circle_radius, inner_circle_radius + 2, 0, 360,
-                   0, BACKGROUND_COLOR);
-
-          // Draw the wheel paddle
-          float paddle_bottom = center.y + radius + 20;
-
-          DrawTriangle((Vector2){center.x, paddle_bottom - 80},
-                       (Vector2){center.x - 15, paddle_bottom},
-                       (Vector2){center.x + 15, paddle_bottom}, RED);
+          else
+          {
+            DrawWheel(0, wheel_radius, Slices, SlicesCount);
+          }
         }
 
         // Draw a menu button
@@ -379,7 +404,7 @@ int main()
                                                             : ScreenHeight / 3);
           float button_border = ScreenWidth / 500;
 
-          if (SlicesDefault)
+          if (SlicesCount == 0)
           {
             // draw a button to add a slice
             Rectangle add_button = {
@@ -397,10 +422,9 @@ int main()
               }
               if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
               {
-                // SlicesDefault = false;
-                // SlicesCount = 1;
-                // Slices[0] = "";
-                // SlicesColors[0] = Colors[0];
+                SlicesCount = 1;
+                Slices[0].Name = "";
+                Slices[0].Color = Colors[0];
               }
             }
             else
