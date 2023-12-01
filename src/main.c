@@ -50,9 +50,17 @@ static bool MenuOpened = false;
 
 typedef struct
 {
+  float Width;
+  Color Color;
+  Color BorderColor;
+  float BorderThickness;
+} Column;
+
+typedef struct
+{
   float Height;
   int ColumnCount;
-  float* ColumnWidth;
+  Column* Columns;
 } Row;
 
 #define ColorsAmount ARRAY_LENGTH(Colors)
@@ -146,7 +154,6 @@ static void DrawRectangleGrid(float x,
                               float width,
                               float height,
                               float padding,
-                              Color color,
                               Row* rows,
                               int rows_amount)
 {
@@ -168,9 +175,16 @@ static void DrawRectangleGrid(float x,
 
     for (int j = 0; j < rows[i].ColumnCount; j++)
     {
-      float colLength = availableWidth * rows[i].ColumnWidth[j] / 100;
+      float colLength = availableWidth * rows[i].Columns[j].Width / 100;
+      Rectangle rect = (Rectangle){curX, curY, colLength, rowLength};
 
-      DrawRectangle(curX, curY, colLength, rowLength, color);
+      DrawRectangleRec(rect, rows[i].Columns[j].Color);
+
+      if (rows[i].Columns[j].BorderThickness > 0)
+      {
+        DrawRectangleLinesEx(rect, rows[i].Columns[j].BorderThickness,
+                             rows[i].Columns[j].BorderColor);
+      }
 
       curX += colLength + padding;
       takenWidth += colLength;
@@ -323,19 +337,19 @@ int main()
           DrawRectangleRoundedLines(corner_button, ROUNDNESS, 0,
                                     corner_button_padding, FOREGROUND_COLOR);
 
+          // Draw a menu icon
           Row rows[] = {
-              {33.33f, 1, (float[]){100}},
-              {33.33f, 1, (float[]){100}},
-              {33.33f, 1, (float[]){100}},
+              {33.33f, 1, (Column[]){(Column){100, FOREGROUND_COLOR}}},
+              {33.33f, 1, (Column[]){(Column){100, FOREGROUND_COLOR}}},
+              {33.33f, 1, (Column[]){(Column){100, FOREGROUND_COLOR}}},
           };
 
-          // Draw a menu icon
           DrawRectangleGrid(corner_button.x + (corner_button_size / 8),
                             corner_button.y + (corner_button_size / 8) +
                                 corner_button_padding / 2,
                             corner_button_size * 3 / 4,
                             corner_button_size * 3 / 4, corner_button_padding,
-                            FOREGROUND_COLOR, rows, ARRAY_LENGTH(rows));
+                            rows, ARRAY_LENGTH(rows));
         }
       }
       else
