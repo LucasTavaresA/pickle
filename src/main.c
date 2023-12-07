@@ -52,6 +52,9 @@ static char LogMessage[1024] = "";
 #define GetContrastedTextColor(color) \
   ((color.r + color.g + color.b) / 3 < CONTRAST_LIMIT) ? WHITE : BLACK
 
+#define IsPointInsideRect(x, y, recX, recY, recWidth, recHeight) \
+  (x >= recX && x <= recX + recWidth && y >= recY && y <= recY + recHeight)
+
 static float ScreenWidth = 0;
 static float ScreenHeight = 0;
 static float ScreenPadding = 0;
@@ -129,17 +132,6 @@ typedef struct
 
 static Slice Slices[ColorsAmount];
 static int SlicesCount = 0;
-
-static bool IsPointInsideRect(int x,
-                              int y,
-                              int recX,
-                              int recY,
-                              int recWidth,
-                              int recHeight)
-{
-  return x >= recX && x <= recX + recWidth && y >= recY &&
-         y <= recY + recHeight;
-}
 
 static void DrawCross(float x,
                       float y,
