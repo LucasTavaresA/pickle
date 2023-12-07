@@ -61,6 +61,7 @@ static int TouchCount = 0;
 static Font Fonte;
 static float FontSize = 0;
 static bool MenuOpened = false;
+static bool ButtonWasPressed = false;
 
 typedef struct
 {
@@ -312,6 +313,7 @@ int main()
       MouseX = GetMouseX();
       MouseY = GetMouseY();
       TouchCount = GetTouchPointCount();
+      ButtonWasPressed = false;
 
       if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
       {
@@ -360,8 +362,10 @@ int main()
             {
               DrawRectangleRounded(corner_button, 0, 0, HIGHLIGHT_COLOR);
             }
-            if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
+
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !ButtonWasPressed)
             {
+              ButtonWasPressed = true;
               MenuOpened = true;
             }
           }
@@ -410,8 +414,10 @@ int main()
               {
                 DrawRectangleRec(add_button, HIGHLIGHT_COLOR);
               }
-              if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
+
+              if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !ButtonWasPressed)
               {
+                ButtonWasPressed = true;
                 SlicesCount = 1;
                 Slices[0].Name = "";
                 Slices[0].Color = Colors[0];
@@ -459,8 +465,10 @@ int main()
             {
               DrawRectangleRounded(corner_button, 0, 0, RED_HIGHLIGHT_COLOR);
             }
-            if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
+
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !ButtonWasPressed)
             {
+              ButtonWasPressed = true;
               MenuOpened = false;
             }
           }
