@@ -47,6 +47,8 @@ static char LogMessage[1024] = "";
     255, 122, 122, 255      \
   }
 #define CONTRAST_LIMIT 85
+// picks between black and white depending on the passed color
+#define GetContrastedTextColor(color) ((color.r + color.g + color.b) / 3 < CONTRAST_LIMIT) ? WHITE : BLACK
 
 static float ScreenWidth = 0;
 static float ScreenHeight = 0;
@@ -134,18 +136,6 @@ static bool IsPointInsideRect(int x,
 {
   return x >= recX && x <= recX + recWidth && y >= recY &&
          y <= recY + recHeight;
-}
-
-static Color GetForegroundColor(Color color)
-{
-  if ((color.r + color.g + color.b) / 3 < CONTRAST_LIMIT)
-  {
-    return WHITE;
-  }
-  else
-  {
-    return BLACK;
-  }
 }
 
 static void DrawCross(float x,
@@ -252,7 +242,7 @@ static void DrawWheel(float angle,
         center.y + (radius / 2) * sinf(midAngle * DEG2RAD)};
 
     DrawTextPro(Fonte, slices[i].Name, labelPosition, (Vector2){0.5f, 0.5f},
-                midAngle, FontSize, 2, GetForegroundColor(Colors[i]));
+                midAngle, FontSize, 2, GetContrastedTextColor(Colors[i]));
 
     startAngle += sectionSize;
     endAngle += sectionSize;
