@@ -47,8 +47,10 @@ static char LogMessage[1024] = "";
     255, 122, 122, 255      \
   }
 #define CONTRAST_LIMIT 85
+
 // picks between black and white depending on the passed color
-#define GetContrastedTextColor(color) ((color.r + color.g + color.b) / 3 < CONTRAST_LIMIT) ? WHITE : BLACK
+#define GetContrastedTextColor(color) \
+  ((color.r + color.g + color.b) / 3 < CONTRAST_LIMIT) ? WHITE : BLACK
 
 static float ScreenWidth = 0;
 static float ScreenHeight = 0;
@@ -327,12 +329,12 @@ int main()
       BeginDrawing();
       ClearBackground(BACKGROUND_COLOR);
 
-      float corner_button_size =
+      float square_button_size =
           (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) / 8;
-      float corner_button_padding = ScreenWidth / 250;
-      Rectangle corner_button = {
-          ScreenWidth - ScreenPadding - corner_button_size, ScreenPadding,
-          corner_button_size, corner_button_size};
+      float square_button_padding = ScreenWidth / 250;
+      Rectangle corner_button_rect = {
+          ScreenWidth - square_button_size - square_button_padding,
+          square_button_padding, square_button_size, square_button_size};
 
       if (!MenuOpened)
       {
@@ -354,13 +356,13 @@ int main()
 
         // Draw a menu button
         {
-          if (IsPointInsideRect(MouseX, MouseY, corner_button.x,
-                                corner_button.y, corner_button.width,
-                                corner_button.height))
+          if (IsPointInsideRect(MouseX, MouseY, corner_button_rect.x,
+                                corner_button_rect.y, corner_button_rect.width,
+                                corner_button_rect.height))
           {
             if ((IsCursorOnScreen() || TouchCount > 0))
             {
-              DrawRectangleRounded(corner_button, 0, 0, HIGHLIGHT_COLOR);
+              DrawRectangleRec(corner_button_rect, HIGHLIGHT_COLOR);
             }
 
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !ButtonWasPressed)
@@ -370,8 +372,8 @@ int main()
             }
           }
 
-          DrawRectangleRoundedLines(corner_button, ROUNDNESS, 0,
-                                    corner_button_padding, FOREGROUND_COLOR);
+          DrawRectangleLinesEx(corner_button_rect, square_button_padding,
+                               FOREGROUND_COLOR);
 
           // Draw a menu icon
           Row rows[] = {
@@ -380,11 +382,10 @@ int main()
               {33.33f, 1, (Column[]){(Column){100, FOREGROUND_COLOR}}},
           };
 
-          DrawRectangleGrid(corner_button.x + (corner_button_size / 8),
-                            corner_button.y + (corner_button_size / 8) +
-                                corner_button_padding / 2,
-                            corner_button_size * 3 / 4,
-                            corner_button_size * 3 / 4, corner_button_padding,
+          DrawRectangleGrid(corner_button_rect.x + (square_button_size / 8),
+                            corner_button_rect.y + (square_button_size / 8),
+                            square_button_size * 3 / 4,
+                            square_button_size * 3 / 4, square_button_padding,
                             rows, ARRAY_LENGTH(rows));
         }
       }
@@ -394,19 +395,26 @@ int main()
         {
           float side_padding =
               (ScreenWidth < ScreenHeight ? 0 : ScreenPadding * 8);
-          float button_height = (ScreenWidth < ScreenHeight ? ScreenHeight / 6
-                                                            : ScreenHeight / 3);
-          float button_border = ScreenWidth / 500;
+          float slice_item_height =
+              (ScreenWidth < ScreenHeight ? ScreenHeight / 6
+                                          : ScreenHeight / 3);
+          float slice_item_width = ScreenWidth - side_padding * 2;
+          float slice_item_border = ScreenWidth / 500;
 
-          if (SlicesCount == 0)
+          // draw a button to add a slice
+          if (SlicesCount == 0 || SlicesCount < ColorsAmount)
           {
-            // draw a button to add a slice
             Rectangle add_button = {
-                side_padding, 0, ScreenWidth - side_padding * 2, button_height};
+                side_padding,
+                (ScreenWidth < ScreenHeight
+                     ? square_button_size + square_button_padding
+                     : 0) +
+                    slice_item_height * SlicesCount,
+                slice_item_width, slice_item_height};
 
-            if (!IsPointInsideRect(MouseX, MouseY, corner_button.x,
-                                   corner_button.y, corner_button.width,
-                                   corner_button.height) &&
+            if (!IsPointInsideRect(
+                    MouseX, MouseY, corner_button_rect.x, corner_button_rect.y,
+                    corner_button_rect.width, corner_button_rect.height) &&
                 IsPointInsideRect(MouseX, MouseY, add_button.x, add_button.y,
                                   add_button.width, add_button.height))
             {
@@ -418,9 +426,9 @@ int main()
               if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !ButtonWasPressed)
               {
                 ButtonWasPressed = true;
-                SlicesCount = 1;
-                Slices[0].Name = "";
-                Slices[0].Color = Colors[0];
+                SlicesCount++;
+                Slices[SlicesCount].Name = "";
+                Slices[SlicesCount].Color = Colors[0];
               }
             }
             else
@@ -428,42 +436,116 @@ int main()
               DrawRectangleRec(add_button, BACKGROUND_COLOR);
             }
 
-            DrawRectangleLinesEx(add_button, button_border, FOREGROUND_COLOR);
+            DrawRectangleLinesEx(add_button, slice_item_border,
+                                 FOREGROUND_COLOR);
 
             DrawCross(add_button.x + add_button.width / 2,
                       add_button.y + add_button.height / 2, 0,
-                      button_height / 2, button_height / 10, FOREGROUND_COLOR);
+                      slice_item_height / 2, slice_item_height / 10,
+                      FOREGROUND_COLOR);
           }
-          else
+
+          for (int i = 0; i < SlicesCount; i++)
           {
-            for (int i = 0; i < SlicesCount; i++)
-            {
-              Rectangle button_rect = {side_padding, i * button_height,
-                                       ScreenWidth - side_padding * 2,
-                                       button_height};
+            Rectangle item_rect = {
+                side_padding,
+                (ScreenWidth < ScreenHeight
+                     ? square_button_size + square_button_padding
+                     : 0) +
+                    i * slice_item_height,
+                slice_item_width, slice_item_height};
 
-              DrawRectangleRec(button_rect, BACKGROUND_COLOR);
-              DrawRectangleLinesEx(button_rect, button_border,
-                                   FOREGROUND_COLOR);
-              // https://github.com/raysan5/raylib/blob/e7a486fa81adac1833253c849ca73c5b3f7ef361/examples/text/text_input_box.c
-            }
+            DrawRectangleLinesEx(item_rect, slice_item_border,
+                                 FOREGROUND_COLOR);
+            // https://github.com/raysan5/raylib/blob/e7a486fa81adac1833253c849ca73c5b3f7ef361/examples/text/text_input_box.c
 
-            // draw a button to add a slice
-            if (SlicesCount < ColorsAmount)
+            // draw a trash button to delete slices
             {
+              Rectangle trash_button = {
+                  ScreenWidth - side_padding - square_button_size -
+                      square_button_padding,
+                  (ScreenWidth < ScreenHeight
+                       ? square_button_size + square_button_padding
+                       : 0) +
+                      i * slice_item_height + square_button_padding,
+                  square_button_size, square_button_size};
+
+              if (IsPointInsideRect(MouseX, MouseY, trash_button.x,
+                                    trash_button.y, trash_button.width,
+                                    trash_button.height))
+              {
+                if ((IsCursorOnScreen() || TouchCount > 0))
+                {
+                  DrawRectangleRec(trash_button, RED_HIGHLIGHT_COLOR);
+                }
+
+                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
+                    !ButtonWasPressed)
+                {
+                  ButtonWasPressed = true;
+                  SlicesCount--;
+                }
+              }
+
+              DrawRectangleLinesEx(trash_button, slice_item_border, RED);
+
+              float trash_button_lid_handle_size = square_button_padding * 4;
+
+              // draw a trash icon
+              {
+                // trash can bucket
+                DrawRectangleRounded(
+                    (Rectangle){trash_button.x + trash_button.width / 4,
+                                trash_button.y + trash_button.height / 4,
+                                square_button_size / 2, square_button_size / 2},
+                    ROUNDNESS, 0, RED);
+
+                // trash can bucket shape
+                DrawRectangleGrid(
+                    trash_button.x + trash_button.width / 4 +
+                        square_button_padding,
+                    trash_button.y + trash_button.height / 4 +
+                        square_button_padding,
+                    square_button_size / 2 - square_button_padding * 2,
+                    square_button_size / 2 - square_button_padding * 2, 3,
+                    (Row[]){100, 3,
+                            (Column[]){(Column){33.33f, RED_HIGHLIGHT_COLOR},
+                                       (Column){33.33f, RED_HIGHLIGHT_COLOR},
+                                       (Column){33.33f, RED_HIGHLIGHT_COLOR}}},
+                    1);
+
+                // trash can handle
+                DrawRectangleRec(
+                    (Rectangle){trash_button.x + trash_button.width / 2 -
+                                    trash_button_lid_handle_size / 2,
+                                trash_button.y + trash_button.height / 6,
+                                trash_button_lid_handle_size,
+                                trash_button_lid_handle_size},
+                    RED);
+
+                // trash can lid
+                DrawRectangleRec(
+                    (Rectangle){trash_button.x + trash_button.width / 4 -
+                                    trash_button_lid_handle_size / 4,
+                                trash_button.y + trash_button.height / 4,
+                                square_button_size / 2 +
+                                    trash_button_lid_handle_size / 2,
+                                square_button_size / 6},
+                    RED);
+              }
             }
           }
         }
 
         // Draw a close button
         {
-          if (IsPointInsideRect(MouseX, MouseY, corner_button.x,
-                                corner_button.y, corner_button.width,
-                                corner_button.height))
+          if (IsPointInsideRect(MouseX, MouseY, corner_button_rect.x,
+                                corner_button_rect.y, corner_button_rect.width,
+                                corner_button_rect.height))
           {
             if ((IsCursorOnScreen() || TouchCount > 0))
             {
-              DrawRectangleRounded(corner_button, 0, 0, RED_HIGHLIGHT_COLOR);
+              DrawRectangleRec(corner_button_rect, RED_HIGHLIGHT_COLOR);
             }
 
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !ButtonWasPressed)
@@ -473,12 +555,11 @@ int main()
             }
           }
 
-          DrawRectangleRoundedLines(corner_button, ROUNDNESS, 0,
-                                    corner_button_padding, RED);
+          DrawRectangleLinesEx(corner_button_rect, square_button_padding, RED);
 
-          DrawCross(corner_button.x + corner_button.width / 2,
-                    corner_button.y + corner_button.height / 2, 45,
-                    corner_button_size, corner_button_size / 8, RED);
+          DrawCross(corner_button_rect.x + corner_button_rect.width / 2,
+                    corner_button_rect.y + corner_button_rect.height / 2, 45,
+                    square_button_size, square_button_size / 8, RED);
         }
       }
 
