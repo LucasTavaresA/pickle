@@ -13,6 +13,9 @@
 #else
 static char LogMessage[1024] = "";
 
+#define LogAppend(formatStr, ...) \
+  sprintf(LogMessage + strlen(LogMessage), formatStr, ##__VA_ARGS__);
+
 #define LogIfTrue(result, formatStr, ...)                               \
   if (result)                                                           \
   {                                                                     \
@@ -569,6 +572,8 @@ int main()
         }
       }
 
+      LogAppend("INFO(Mouse): X %.1f Y %.1f PressedX %.1f PressedY %.1f \n",
+                MouseX, MouseY, MousePressedX, MousePressedY);
       LogDraw();
       LogSet("");
 
