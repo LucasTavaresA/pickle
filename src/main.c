@@ -111,24 +111,38 @@ static const Color Colors[] = {
     MAGENTA,     // Magenta
 };
 
-#define DEFAULT_SLICES                                                      \
-  (Slice[])                                                                 \
-  {                                                                         \
-    {"Light Gray", LIGHTGRAY}, {"Gray", GRAY}, {"Dark Gray", DARKGRAY},     \
-        {"Yellow", YELLOW}, {"Gold", GOLD}, {"Orange", ORANGE},             \
-        {"Pink", PINK}, {"Red", RED}, {"Maroon", MAROON}, {"Green", GREEN}, \
-        {"Lime", LIME}, {"Dark Green", DARKGREEN}, {"Sky Blue", SKYBLUE},   \
-        {"Blue", BLUE}, {"Dark Blue", DARKBLUE}, {"Purple", PURPLE},        \
-        {"Violet", VIOLET}, {"Dark Purple", DARKPURPLE}, {"Beige", BEIGE},  \
-        {"Brown", BROWN}, {"Dark Brown", DARKBROWN}, {"White", WHITE},      \
-        {"Black", BLACK}, {"Magenta", MAGENTA},                             \
-  }
-
 typedef struct
 {
   char* Name;
   Color Color;
 } Slice;
+
+static Slice DefaultSlices[] = {
+    {"Light Gray", LIGHTGRAY},
+    {"Gray", GRAY},
+    {"Dark Gray", DARKGRAY},
+    {"Yellow", YELLOW},
+    {"Gold", GOLD},
+    {"Orange", ORANGE},
+    {"Pink", PINK},
+    {"Red", RED},
+    {"Maroon", MAROON},
+    {"Green", GREEN},
+    {"Lime", LIME},
+    {"Dark Green", DARKGREEN},
+    {"Sky Blue", SKYBLUE},
+    {"Blue", BLUE},
+    {"Dark Blue", DARKBLUE},
+    {"Purple", PURPLE},
+    {"Violet", VIOLET},
+    {"Dark Purple", DARKPURPLE},
+    {"Beige", BEIGE},
+    {"Brown", BROWN},
+    {"Dark Brown", DARKBROWN},
+    {"White", WHITE},
+    {"Black", BLACK},
+    {"Magenta", MAGENTA},
+};
 
 static Slice Slices[ColorsAmount];
 static int SlicesCount = 0;
@@ -338,7 +352,7 @@ int main()
 
           if (SlicesCount == 0)
           {
-            DrawWheel(0, wheel_radius, DEFAULT_SLICES, ColorsAmount);
+            DrawWheel(0, wheel_radius, DefaultSlices, ColorsAmount);
           }
           else
           {
@@ -418,9 +432,9 @@ int main()
               if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !ButtonWasPressed)
               {
                 ButtonWasPressed = true;
+                Slices[SlicesCount].Name = DefaultSlices[SlicesCount].Name;
+                Slices[SlicesCount].Color = DefaultSlices[SlicesCount].Color;
                 SlicesCount++;
-                Slices[SlicesCount].Name = "";
-                Slices[SlicesCount].Color = Colors[0];
               }
             }
             else
