@@ -1,282 +1,8 @@
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "../raylib/src/raylib.h"
 
-#ifdef RELEASE
-#define LogIfTrue(...)
-#define LogIfBadContrast(...)
-#define LogSet(...)
-#define LogDraw(...)
-#else
-static char LogMessage[1024] = "";
-
-#define LogAppend(formatStr, ...) \
-  sprintf(LogMessage + strlen(LogMessage), formatStr, ##__VA_ARGS__);
-
-#define LogIfTrue(result, formatStr, ...)                               \
-  if (result)                                                           \
-  {                                                                     \
-    sprintf(LogMessage + strlen(LogMessage), formatStr, ##__VA_ARGS__); \
-  }
-
-#define LogIfBadContrast(backgroundColor, textColor, formatStr, ...)    \
-  int rDiff = abs(backgroundColor.r - textColor.r);                     \
-  int gDiff = abs(backgroundColor.g - textColor.g);                     \
-  int bDiff = abs(backgroundColor.b - textColor.b);                     \
-                                                                        \
-  if ((rDiff + gDiff + bDiff) / 3 < CONTRAST_LIMIT)                     \
-  {                                                                     \
-    sprintf(LogMessage + strlen(LogMessage), formatStr, ##__VA_ARGS__); \
-  }
-
-#define LogDraw() DrawText(LogMessage, 0, 0, 20, RED)
-#define LogSet(message)                             \
-  strncpy(LogMessage, message, sizeof(LogMessage)); \
-  LogMessage[sizeof(LogMessage) - 1] = '\0';
-#endif
-
-#define ARRAY_LENGTH(arr) sizeof(arr) / sizeof(arr[0])
-#define APP_NAME "pickle"
-#define ROUNDNESS 0.2f
-#define FOREGROUND_COLOR BLACK
-#define BACKGROUND_COLOR WHITE
-#define HIGHLIGHT_COLOR LIGHTGRAY
-#define RED_HIGHLIGHT_COLOR \
-  (Color)                   \
-  {                         \
-    255, 122, 122, 255      \
-  }
-#define CONTRAST_LIMIT 85
-
-// picks between black and white depending on the passed color
-#define GetContrastedTextColor(color) \
-  ((color.r + color.g + color.b) / 3 < CONTRAST_LIMIT) ? WHITE : BLACK
-
-#define IsPointInsideRect(x, y, recX, recY, recWidth, recHeight) \
-  (x >= recX && x <= recX + recWidth && y >= recY && y <= recY + recHeight)
-
-static float ScreenWidth = 0;
-static float ScreenHeight = 0;
-static float ScreenPadding = 0;
-static float MouseX = 0;
-static float MouseY = 0;
-static float MousePressedX = 0;
-static float MousePressedY = 0;
-static int TouchCount = 0;
-static Font Fonte;
-static float FontSize = 0;
-static bool MenuOpened = false;
-static bool ButtonWasPressed = false;
-
-typedef struct
-{
-  float Width;
-  Color Color;
-  Color BorderColor;
-  float BorderThickness;
-} Column;
-
-typedef struct
-{
-  float Height;
-  int ColumnCount;
-  Column* Columns;
-} Row;
-
-#define ColorsAmount ARRAY_LENGTH(Colors)
-static const Color Colors[] = {
-    LIGHTGRAY,   // Light Gray
-    GRAY,        // Gray
-    DARKGRAY,    // Dark Gray
-    YELLOW,      // Yellow
-    GOLD,        // Gold
-    ORANGE,      // Orange
-    PINK,        // Pink
-    RED,         // Red
-    MAROON,      // Maroon
-    GREEN,       // Green
-    LIME,        // Lime
-    DARKGREEN,   // Dark Green
-    SKYBLUE,     // Sky Blue
-    BLUE,        // Blue
-    DARKBLUE,    // Dark Blue
-    PURPLE,      // Purple
-    VIOLET,      // Violet
-    DARKPURPLE,  // Dark Purple
-    BEIGE,       // Beige
-    BROWN,       // Brown
-    DARKBROWN,   // Dark Brown
-    WHITE,       // White
-    BLACK,       // Black
-    MAGENTA,     // Magenta
-};
-
-typedef struct
-{
-  char* Name;
-  Color Color;
-} Slice;
-
-static Slice DefaultSlices[] = {
-    {"Light Gray", LIGHTGRAY},
-    {"Gray", GRAY},
-    {"Dark Gray", DARKGRAY},
-    {"Yellow", YELLOW},
-    {"Gold", GOLD},
-    {"Orange", ORANGE},
-    {"Pink", PINK},
-    {"Red", RED},
-    {"Maroon", MAROON},
-    {"Green", GREEN},
-    {"Lime", LIME},
-    {"Dark Green", DARKGREEN},
-    {"Sky Blue", SKYBLUE},
-    {"Blue", BLUE},
-    {"Dark Blue", DARKBLUE},
-    {"Purple", PURPLE},
-    {"Violet", VIOLET},
-    {"Dark Purple", DARKPURPLE},
-    {"Beige", BEIGE},
-    {"Brown", BROWN},
-    {"Dark Brown", DARKBROWN},
-    {"White", WHITE},
-    {"Black", BLACK},
-    {"Magenta", MAGENTA},
-};
-
-static Slice Slices[ColorsAmount];
-static int SlicesCount = 0;
-
-static void DrawCross(float x,
-                      float y,
-                      float angle,
-                      float length,
-                      float thickness,
-                      Color color)
-{
-  float radians = DEG2RAD * angle;
-
-  Vector2 startHorizontal = {x - length / 2 * cosf(radians),
-                             y - length / 2 * sinf(radians)};
-  Vector2 endHorizontal = {x + length / 2 * cosf(radians),
-                           y + length / 2 * sinf(radians)};
-
-  Vector2 startVertical = {x - length / 2 * cosf(radians + PI / 2),
-                           y - length / 2 * sinf(radians + PI / 2)};
-  Vector2 endVertical = {x + length / 2 * cosf(radians + PI / 2),
-                         y + length / 2 * sinf(radians + PI / 2)};
-
-  DrawLineEx(startHorizontal, endHorizontal, thickness, color);
-  DrawLineEx(startVertical, endVertical, thickness, color);
-}
-
-static void DrawRectangleGrid(float x,
-                              float y,
-                              float width,
-                              float height,
-                              float padding,
-                              Row* rows,
-                              int rows_amount)
-{
-  LogIfTrue(x < 0 || y < 0 || width <= 0 || height <= 0 ||
-                x + width > ScreenWidth || y + height > ScreenHeight,
-            "ERROR: Rectangle grid is outside of the screen!\n");
-
-  float availableHeight = height - (padding * (rows_amount - 1));
-  float curY = y;
-  float takenHeight = 0;
-
-  for (int i = 0; i < rows_amount; i++)
-  {
-    float rowLength = availableHeight * rows[i].Height / 100;
-
-    float availableWidth = width - (padding * (rows[i].ColumnCount - 1));
-    float curX = x;
-    float takenWidth = 0;
-
-    for (int j = 0; j < rows[i].ColumnCount; j++)
-    {
-      float colLength = availableWidth * rows[i].Columns[j].Width / 100;
-      Rectangle rect = (Rectangle){curX, curY, colLength, rowLength};
-
-      DrawRectangleRec(rect, rows[i].Columns[j].Color);
-
-      if (rows[i].Columns[j].BorderThickness > 0)
-      {
-        DrawRectangleLinesEx(rect, rows[i].Columns[j].BorderThickness,
-                             rows[i].Columns[j].BorderColor);
-
-        LogIfBadContrast(
-            rows[i].Columns[j].Color, rows[i].Columns[j].BorderColor,
-            "ERROR: Bad border contrast at [%.0f, %.0f] Grid, [%d, %d] Column",
-            x, y, i, j);
-      }
-
-      curX += colLength + padding;
-      takenWidth += colLength;
-
-      LogIfTrue(takenWidth > availableWidth,
-                "ERROR: Rectangle grid %d row %d column takes more than the "
-                "available width!\n",
-                i + 1, j + 1);
-    }
-
-    curY += rowLength + padding;
-    takenHeight += rowLength;
-
-    LogIfTrue(
-        takenHeight > availableHeight,
-        "ERROR: Rectangle grid %d row takes more than the available height!\n",
-        i + 1);
-  }
-}
-
-static void DrawWheel(float angle,
-                      float radius,
-                      Slice* slices,
-                      int slice_amount)
-{
-  Vector2 center = {ScreenWidth / 2, ScreenHeight / 2};
-  float sectionSize = 360.0f / slice_amount;
-  float startAngle = 0;
-  float endAngle = sectionSize;
-
-  for (int i = 0; i < slice_amount; i++)
-  {
-    DrawCircleSector(center, radius, startAngle, endAngle, 0, slices[i].Color);
-
-    float midAngle = ((startAngle + endAngle) / 2) - FontSize / 8;
-    Vector2 labelPosition = {
-        center.x + (radius / 2) * cosf(midAngle * DEG2RAD),
-        center.y + (radius / 2) * sinf(midAngle * DEG2RAD)};
-
-    DrawTextPro(Fonte, slices[i].Name, labelPosition, (Vector2){0.5f, 0.5f},
-                midAngle, FontSize, 2, GetContrastedTextColor(Colors[i]));
-
-    startAngle += sectionSize;
-    endAngle += sectionSize;
-  }
-
-  // Draw a border on the wheel
-  DrawRing(center, radius - 2, radius + 2, 0, 360, 0, FOREGROUND_COLOR);
-
-  // Draw a circle in the middle of the wheel
-  float inner_circle_radius = radius / 4;
-
-  DrawCircleV(center, inner_circle_radius, FOREGROUND_COLOR);
-  DrawRing(center, inner_circle_radius, inner_circle_radius + 2, 0, 360, 0,
-           BACKGROUND_COLOR);
-
-  // Draw the wheel paddle
-  float paddle_bottom = center.y + radius + 20;
-
-  DrawTriangle((Vector2){center.x, paddle_bottom - 80},
-               (Vector2){center.x - 15, paddle_bottom},
-               (Vector2){center.x + 15, paddle_bottom}, RED);
-}
+#include "draw.c"
+#include "globals.c"
+#include "log.c"
 
 int main()
 {
@@ -369,8 +95,9 @@ int main()
                                 corner_button_rect.y, corner_button_rect.width,
                                 corner_button_rect.height))
           {
-            if ((IsCursorOnScreen() || TouchCount > 0))
+            if (IsCursorOnScreen() || TouchCount > 0)
             {
+              // button background
               DrawRectangleRec(corner_button_rect, HIGHLIGHT_COLOR);
             }
 
@@ -381,6 +108,7 @@ int main()
             }
           }
 
+          // button outline
           DrawRectangleLinesEx(corner_button_rect, square_button_padding,
                                FOREGROUND_COLOR);
 
@@ -429,6 +157,7 @@ int main()
             {
               if ((IsCursorOnScreen() || TouchCount > 0))
               {
+                // button background
                 DrawRectangleRec(add_button, HIGHLIGHT_COLOR);
               }
 
@@ -440,14 +169,12 @@ int main()
                 SlicesCount++;
               }
             }
-            else
-            {
-              DrawRectangleRec(add_button, BACKGROUND_COLOR);
-            }
 
+            // button outline
             DrawRectangleLinesEx(add_button, slice_item_border,
                                  FOREGROUND_COLOR);
 
+            // plus sign
             DrawCross(add_button.x + add_button.width / 2,
                       add_button.y + add_button.height / 2, 0,
                       slice_item_height / 2, slice_item_height / 10,
@@ -464,9 +191,39 @@ int main()
                     i * slice_item_height,
                 slice_item_width, slice_item_height};
 
+            Vector2 item_name_text_size =
+                MeasureTextEx(Fonte, Slices[i].Name, FontSize, TEXT_SPACING);
+
+            Rectangle item_name_rect = {
+                side_padding + square_button_padding,
+                (ScreenWidth < ScreenHeight ? square_button_size : 0) +
+                    i * slice_item_height + square_button_padding,
+                item_name_text_size.x + square_button_padding,
+                item_name_text_size.y + square_button_padding};
+
+            ShadowStyle item_name_shadow = {0};
+
+            // button outline
             DrawRectangleLinesEx(item_rect, slice_item_border,
                                  FOREGROUND_COLOR);
-            // https://github.com/raysan5/raylib/blob/e7a486fa81adac1833253c849ca73c5b3f7ef361/examples/text/text_input_box.c
+
+            // draw item name text box
+            if (IsPointInsideRect(MouseX, MouseY, item_name_rect.x,
+                                  item_name_rect.y, item_name_rect.width,
+                                  item_name_rect.height))
+            {
+              DrawTextBox(item_name_rect.x, item_name_rect.y,
+                          item_name_rect.width, item_name_rect.height,
+                          Slices[i].Name, FOREGROUND_COLOR, HIGHLIGHT_COLOR,
+                          slice_item_border, HIGHLIGHT_COLOR, item_name_shadow);
+            }
+            else
+            {
+              DrawTextBox(item_name_rect.x, item_name_rect.y,
+                          item_name_rect.width, item_name_rect.height,
+                          Slices[i].Name, FOREGROUND_COLOR, BACKGROUND_COLOR,
+                          slice_item_border, HIGHLIGHT_COLOR, item_name_shadow);
+            }
 
             // draw a trash button to delete slices
             {
@@ -485,6 +242,7 @@ int main()
               {
                 if ((IsCursorOnScreen() || TouchCount > 0))
                 {
+                  // button background
                   DrawRectangleRec(trash_button, RED_HIGHLIGHT_COLOR);
                 }
 
@@ -496,6 +254,7 @@ int main()
                 }
               }
 
+              // button outline
               DrawRectangleLinesEx(trash_button, slice_item_border, RED);
 
               float trash_button_lid_handle_size = square_button_padding * 4;
@@ -554,6 +313,7 @@ int main()
           {
             if ((IsCursorOnScreen() || TouchCount > 0))
             {
+              // button background
               DrawRectangleRec(corner_button_rect, RED_HIGHLIGHT_COLOR);
             }
 
@@ -564,15 +324,17 @@ int main()
             }
           }
 
+          // button outline
           DrawRectangleLinesEx(corner_button_rect, square_button_padding, RED);
 
+          // x sign
           DrawCross(corner_button_rect.x + corner_button_rect.width / 2,
                     corner_button_rect.y + corner_button_rect.height / 2, 45,
                     square_button_size, square_button_size / 8, RED);
         }
       }
 
-      LogAppend("INFO(Mouse): X %.1f Y %.1f PressedX %.1f PressedY %.1f \n",
+      LogAppend("INFO(Mouse): X %.0f Y %.0f PressedX %.0f PressedY %.0f \n",
                 MouseX, MouseY, MousePressedX, MousePressedY);
       LogDraw();
       LogSet("");
