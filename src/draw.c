@@ -119,6 +119,7 @@ static void DrawTextBox(float x,
                         float height,
                         char* text,
                         Color textColor,
+                        float fontSize,
                         Color backgroundColor,
                         float borderThickness,
                         Color borderColor,
@@ -128,7 +129,7 @@ static void DrawTextBox(float x,
       backgroundColor, textColor,
       "ERROR: The text at the %.0f,%.0f text box is not visible!\n", x, y);
 
-  Vector2 textSize = MeasureTextEx(Fonte, text, FontSize, TEXT_SPACING);
+  Vector2 textSize = MeasureTextEx(Fonte, text, fontSize, TEXT_SPACING);
 
   LogIfTrue(textSize.x > width || textSize.y > height,
             "ERROR: The text at the %.0f,%.0f text box does not fit its box!\n",
@@ -151,7 +152,7 @@ static void DrawTextBox(float x,
     DrawRectangleLinesEx(rec, borderThickness, borderColor);
   }
 
-  DrawTextEx(Fonte, text, (Vector2){textX, textY}, FontSize, 2, textColor);
+  DrawTextEx(Fonte, text, (Vector2){textX, textY}, fontSize, 2, textColor);
 }
 
 static void DrawButton(float x,
@@ -189,7 +190,7 @@ static void DrawButton(float x,
       y += shadowStyle.Distance;
     }
 
-    DrawTextBox(x, y, width, height, text, textColor, pressedColor,
+    DrawTextBox(x, y, width, height, text, textColor, FontSize, pressedColor,
                 borderThickness, borderColor, shadowStyle);
 
     //   if (Calculator.Commands.TryGetValue(text, out Action command))
@@ -205,7 +206,7 @@ static void DrawButton(float x,
   }
   else
   {
-    DrawTextBox(x, y, width, height, text, textColor,
+    DrawTextBox(x, y, width, height, text, textColor, FontSize,
                 IsPointInsideRect(MouseX, MouseY, x, y, width, height)
                     ? hoveredColor
                     : backgroundColor,
@@ -355,7 +356,7 @@ static void DrawWheel(float angle,
         center.y + (radius / 2) * sinf(midAngle * DEG2RAD)};
 
     DrawTextPro(Fonte, slices[i].Name, labelPosition, (Vector2){0.5f, 0.5f},
-                midAngle, FontSize, TEXT_SPACING,
+                midAngle, FontSize / 1.2, TEXT_SPACING,
                 GetContrastedTextColor(Colors[i]));
 
     startAngle += sectionSize;

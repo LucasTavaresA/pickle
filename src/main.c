@@ -42,7 +42,7 @@ int main()
       ScreenHeight = GetScreenHeight();
       ScreenPadding =
           (ScreenWidth < ScreenHeight ? ScreenWidth / 16 : ScreenHeight / 32);
-      FontSize = (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) / 30;
+      FontSize = (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) / 25;
     }
 
     // update mouse and touch information
@@ -188,8 +188,8 @@ int main()
                     i * slice_item_height,
                 slice_item_width, slice_item_height};
 
-            Vector2 item_name_text_size =
-                MeasureTextEx(Fonte, Slices[i].Name, FontSize, TEXT_SPACING);
+            Vector2 item_name_text_size = MeasureTextEx(
+                Fonte, Slices[i].Name, FontSize * 2, TEXT_SPACING);
 
             Rectangle item_name_rect = {
                 side_padding + square_button_padding,
@@ -213,15 +213,17 @@ int main()
             {
               DrawTextBox(item_name_rect.x, item_name_rect.y,
                           item_name_rect.width, item_name_rect.height,
-                          Slices[i].Name, FOREGROUND_COLOR, HIGHLIGHT_COLOR,
-                          slice_item_border, HIGHLIGHT_COLOR, item_name_shadow);
+                          Slices[i].Name, FOREGROUND_COLOR, FontSize,
+                          HIGHLIGHT_COLOR, slice_item_border, HIGHLIGHT_COLOR,
+                          item_name_shadow);
             }
             else
             {
               DrawTextBox(item_name_rect.x, item_name_rect.y,
                           item_name_rect.width, item_name_rect.height,
-                          Slices[i].Name, FOREGROUND_COLOR, BACKGROUND_COLOR,
-                          slice_item_border, HIGHLIGHT_COLOR, item_name_shadow);
+                          Slices[i].Name, FOREGROUND_COLOR, FontSize,
+                          BACKGROUND_COLOR, slice_item_border, HIGHLIGHT_COLOR,
+                          item_name_shadow);
             }
 
             // draw a trash button to delete slices
