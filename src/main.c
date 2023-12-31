@@ -149,10 +149,7 @@ int main()
                     slice_item_height * SlicesCount,
                 slice_item_width, slice_item_height};
 
-            if (!IsPointInsideRect(
-                    MouseX, MouseY, corner_button_rect.x, corner_button_rect.y,
-                    corner_button_rect.width, corner_button_rect.height) &&
-                IsPointInsideRect(MouseX, MouseY, add_button.x, add_button.y,
+            if (IsPointInsideRect(MouseX, MouseY, add_button.x, add_button.y,
                                   add_button.width, add_button.height))
             {
               if ((IsCursorOnScreen() || TouchCount > 0))
@@ -196,7 +193,9 @@ int main()
 
             Rectangle item_name_rect = {
                 side_padding + square_button_padding,
-                (ScreenWidth < ScreenHeight ? square_button_size : 0) +
+                (ScreenWidth < ScreenHeight
+                     ? square_button_size + square_button_padding
+                     : 0) +
                     i * slice_item_height + square_button_padding,
                 item_name_text_size.x + square_button_padding,
                 item_name_text_size.y + square_button_padding};

@@ -124,15 +124,15 @@ static void DrawTextBox(float x,
                         Color borderColor,
                         ShadowStyle shadowStyle)
 {
-  LogIfBadContrast(backgroundColor, textColor,
-                   "ERROR: The text at the %.0f,%.0f text box is not visible!\n", x,
-                   y);
+  LogIfBadContrast(
+      backgroundColor, textColor,
+      "ERROR: The text at the %.0f,%.0f text box is not visible!\n", x, y);
 
   Vector2 textSize = MeasureTextEx(Fonte, text, FontSize, TEXT_SPACING);
 
   LogIfTrue(textSize.x > width || textSize.y > height,
-            "ERROR: The text at the %.0f,%.0f text box does not fit its box!\n", x,
-            y);
+            "ERROR: The text at the %.0f,%.0f text box does not fit its box!\n",
+            x, y);
 
   float textX = x + ((width - textSize.x) / 2);
   float textY = y + ((height - textSize.y) / 2);
@@ -235,7 +235,8 @@ static void DrawButtonGrid(float x,
 
     for (int j = 0; j < rows[i].ButtonCount; j++)
     {
-      float colLength = availableWidth * rows[i].Buttons[j].WidthPercentage / 100;
+      float colLength =
+          availableWidth * rows[i].Buttons[j].WidthPercentage / 100;
 
       DrawButton(curX, curY, colLength, rowLength, rows[i].Buttons[j].Text,
                  rows[i].Buttons[j].Style.TextColor,
@@ -249,15 +250,16 @@ static void DrawButtonGrid(float x,
       curX += colLength + padding;
       takenWidth += colLength;
 
-        LogIfBadContrast(
-            rows[i].Buttons[j].Style.BackgroundColor, rows[i].Buttons[j].Style.BorderColor,
-            "ERROR: Bad border contrast at [%.0f, %.0f] Grid, [%d, %d] Button",
-            x, y, i, j);
+      LogIfBadContrast(
+          rows[i].Buttons[j].Style.BackgroundColor,
+          rows[i].Buttons[j].Style.BorderColor,
+          "ERROR: Bad border contrast at [%.0f, %.0f] Grid, [%d, %d] Button", x,
+          y, i, j);
 
-      LogIfTrue(
-          takenWidth > availableWidth,
-          "ERROR: Button grid at [%.0f, %.0f], %d column takes more than the available width!\n",
-          x, y, j + 1);
+      LogIfTrue(takenWidth > availableWidth,
+                "ERROR: Button grid at [%.0f, %.0f], %d column takes more than "
+                "the available width!\n",
+                x, y, j + 1);
 
       // LogIfTrue(
       //     !Calculator.Commands.ContainsKey(rows[i].Buttons[j].Text),
@@ -269,10 +271,10 @@ static void DrawButtonGrid(float x,
     curY += rowLength + padding;
     takenHeight += rowLength;
 
-    LogIfTrue(
-        takenHeight > availableHeight,
-        "ERROR: Button grid at [%.0f, %.0f], %d row takes more than the available height!\n",
-        x, y, i + 1);
+    LogIfTrue(takenHeight > availableHeight,
+              "ERROR: Button grid at [%.0f, %.0f], %d row takes more than the "
+              "available height!\n",
+              x, y, i + 1);
   }
 }
 
