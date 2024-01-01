@@ -152,7 +152,7 @@ int main()
             if (IsPointInsideRect(MouseX, MouseY, add_button.x, add_button.y,
                                   add_button.width, add_button.height))
             {
-              if ((IsCursorOnScreen() || TouchCount > 0))
+              if (IsCursorOnScreen() || TouchCount > 0)
               {
                 // button background
                 DrawRectangleRec(add_button, HIGHLIGHT_COLOR);
@@ -202,7 +202,7 @@ int main()
 
             ShadowStyle item_name_shadow = {0};
 
-            // button outline
+            // slice item outline
             DrawRectangleLinesEx(item_rect, slice_item_border,
                                  FOREGROUND_COLOR);
 
@@ -241,7 +241,7 @@ int main()
                                     trash_button.y, trash_button.width,
                                     trash_button.height))
               {
-                if ((IsCursorOnScreen() || TouchCount > 0))
+                if (IsCursorOnScreen() || TouchCount > 0)
                 {
                   // button background
                   DrawRectangleRec(trash_button, RED_HIGHLIGHT_COLOR);
@@ -312,7 +312,7 @@ int main()
                                 corner_button_rect.y, corner_button_rect.width,
                                 corner_button_rect.height))
           {
-            if ((IsCursorOnScreen() || TouchCount > 0))
+            if (IsCursorOnScreen() || TouchCount > 0)
             {
               // button background
               DrawRectangleRec(corner_button_rect, RED_HIGHLIGHT_COLOR);
