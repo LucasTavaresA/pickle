@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PICKLE_LOG
+#define PICKLE_LOG
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,3 +39,5 @@ static char LogMessage[1024] = "";
   strncpy(LogMessage, message, sizeof(LogMessage)); \
   LogMessage[sizeof(LogMessage) - 1] = '\0';
 #endif
+
+#endif // PICKLE_LOG

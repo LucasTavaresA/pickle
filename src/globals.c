@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PICKLE_GLOBALS
+#define PICKLE_GLOBALS
 
 #include "../raylib/src/raylib.h"
 
@@ -106,3 +107,5 @@ static Slice DefaultSlices[] = {
 
 static Slice Slices[ColorsAmount];
 static int SlicesCount = 0;
+
+#endif // PICKLE_GLOBALS
