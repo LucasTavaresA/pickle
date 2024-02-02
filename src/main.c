@@ -8,6 +8,7 @@ int main()
 {
   SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT);
   InitWindow(ScreenWidth, ScreenHeight, APP_NAME);
+  SetExitKey(0);
 
 #ifndef PLATFORM_ANDROID
   ChangeDirectory("assets");
@@ -25,12 +26,7 @@ int main()
   {
     // key events
     {
-      if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_Q))
-      {
-        MenuOpened = false;
-      }
-
-      if (IsKeyPressed(KEY_SPACE))
+      if (IsKeyPressed(KEY_ESCAPE))
       {
         MenuOpened = !MenuOpened;
       }
