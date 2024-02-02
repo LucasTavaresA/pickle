@@ -12,6 +12,7 @@
 #define LogIfBadContrast(...)
 #define LogSet(...)
 #define LogDraw(...)
+#define LogAppend(...)
 #else
 static char LogMessage[1024] = "";
 
