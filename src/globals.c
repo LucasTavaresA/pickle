@@ -7,6 +7,7 @@
 #define APP_NAME "pickle"
 #define TEXT_SPACING 2
 #define ROUNDNESS 0.2f
+#define KEY_REPEAT_INTERVAL 0.2f
 #define FOREGROUND_COLOR BLACK
 #define BACKGROUND_COLOR WHITE
 #define HIGHLIGHT_COLOR LIGHTGRAY
@@ -44,11 +45,14 @@ static float MouseX = 0;
 static float MouseY = 0;
 static float MousePressedX = 0;
 static float MousePressedY = 0;
+static float BackspacePressedTime = 0;
 static int TouchCount = 0;
 static Font Fonte;
 static float FontSize = 0;
 static bool MenuOpened = false;
 static bool ButtonWasPressed = false;
+static bool Clicked = false;
+static int TypingIndex = -1;
 
 #define ColorsAmount ARRAY_LENGTH(Colors)
 static const Color Colors[] = {

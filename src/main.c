@@ -1,3 +1,5 @@
+#include <ctype.h>
+
 #include "../raylib/src/raylib.h"
 
 #include "draw.c"
@@ -47,11 +49,13 @@ int main()
       MouseY = GetMouseY();
       TouchCount = GetTouchPointCount();
       ButtonWasPressed = false;
+      Clicked = false;
 
       if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
       {
         MousePressedX = MouseX;
         MousePressedY = MouseY;
+        Clicked = true;
       }
     }
 
@@ -97,7 +101,11 @@ int main()
               DrawRectangleRec(corner_button_rect, HIGHLIGHT_COLOR);
             }
 
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !ButtonWasPressed)
+            if (!ButtonWasPressed && IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
+                IsPointInsideRect(MousePressedX, MousePressedY,
+                                  corner_button_rect.x, corner_button_rect.y,
+                                  corner_button_rect.width,
+                                  corner_button_rect.height))
             {
               ButtonWasPressed = true;
               MenuOpened = true;
@@ -154,10 +162,15 @@ int main()
                 DrawRectangleRec(add_button, HIGHLIGHT_COLOR);
               }
 
-              if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !ButtonWasPressed)
+              if (!ButtonWasPressed &&
+                  IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
+                  IsPointInsideRect(MousePressedX, MousePressedY, add_button.x,
+                                    add_button.y, add_button.width,
+                                    add_button.height))
               {
                 ButtonWasPressed = true;
-                Slices[SlicesCount].Name = DefaultSlices[SlicesCount].Name;
+                Slices[SlicesCount].Name =
+                    strdup(DefaultSlices[SlicesCount].Name);
                 Slices[SlicesCount].Color = DefaultSlices[SlicesCount].Color;
                 SlicesCount++;
               }
@@ -202,16 +215,74 @@ int main()
             DrawRectangleLinesEx(item_rect, slice_item_border,
                                  FOREGROUND_COLOR);
 
-            // draw item name text box
-            if (IsPointInsideRect(MouseX, MouseY, item_name_rect.x,
-                                  item_name_rect.y, item_name_rect.width,
-                                  item_name_rect.height))
+            // TODO(LucasTA): Handle mobile with builtin keyboard
+            if (TypingIndex == i)
             {
+              size_t name_length = strlen(Slices[i].Name);
+              char display_name[name_length + 2];
+              snprintf(display_name, name_length + 2, "%s|", Slices[i].Name);
+
               DrawTextBox(item_name_rect.x, item_name_rect.y,
                           item_name_rect.width, item_name_rect.height,
-                          Slices[i].Name, FOREGROUND_COLOR, FontSize,
-                          HIGHLIGHT_COLOR, slice_item_border, HIGHLIGHT_COLOR,
+                          display_name, FOREGROUND_COLOR, FontSize,
+                          HIGHLIGHT_COLOR, slice_item_border, FOREGROUND_COLOR,
                           item_name_shadow);
+
+              if (IsKeyPressed(KEY_BACKSPACE))
+              {
+                Slices[i].Name[name_length - 1] = '\0';
+                BackspacePressedTime = 0;
+              }
+              else if (IsKeyDown(KEY_BACKSPACE))
+              {
+                if (BackspacePressedTime >= KEY_REPEAT_INTERVAL)
+                {
+                  Slices[i].Name[name_length - 1] = '\0';
+                  BackspacePressedTime = 0;
+                }
+
+                BackspacePressedTime += GetFrameTime();
+              }
+              else
+              {
+                BackspacePressedTime = 0;
+
+                if (item_name_rect.width <
+                    item_rect.width - square_button_size * 2)
+                {
+                  int keycode = GetCharPressed();
+
+                  if (keycode == ' ' || isalnum(keycode))
+                  {
+                    Slices[i].Name[name_length] = tolower(keycode);
+                    Slices[i].Name[name_length + 1] = '\0';
+                  }
+                }
+              }
+            }
+            else if (IsPointInsideRect(MouseX, MouseY, item_name_rect.x,
+                                       item_name_rect.y, item_name_rect.width,
+                                       item_name_rect.height))
+            {
+              if (IsCursorOnScreen() || TouchCount > 0)
+              {
+                DrawTextBox(item_name_rect.x, item_name_rect.y,
+                            item_name_rect.width, item_name_rect.height,
+                            Slices[i].Name, FOREGROUND_COLOR, FontSize,
+                            HIGHLIGHT_COLOR, slice_item_border, HIGHLIGHT_COLOR,
+                            item_name_shadow);
+              }
+
+              if (!ButtonWasPressed &&
+                  IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
+                  IsPointInsideRect(MousePressedX, MousePressedY,
+                                    item_name_rect.x, item_name_rect.y,
+                                    item_name_rect.width,
+                                    item_name_rect.height))
+              {
+                ButtonWasPressed = true;
+                TypingIndex = i;
+              }
             }
             else
             {
@@ -243,10 +314,16 @@ int main()
                   DrawRectangleRec(trash_button, RED_HIGHLIGHT_COLOR);
                 }
 
-                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
-                    !ButtonWasPressed)
+                if (!ButtonWasPressed &&
+                    IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
+                    IsPointInsideRect(MousePressedX, MousePressedY,
+                                      trash_button.x, trash_button.y,
+                                      trash_button.width, trash_button.height))
                 {
                   ButtonWasPressed = true;
+                  // remove item and rearrange list
+                  memmove(&Slices[i], &Slices[i + 1],
+                          (SlicesCount - i - 1) * sizeof(Slice));
                   SlicesCount--;
                 }
               }
@@ -314,7 +391,11 @@ int main()
               DrawRectangleRec(corner_button_rect, RED_HIGHLIGHT_COLOR);
             }
 
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !ButtonWasPressed)
+            if (!ButtonWasPressed && IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
+                IsPointInsideRect(MousePressedX, MousePressedY,
+                                  corner_button_rect.x, corner_button_rect.y,
+                                  corner_button_rect.width,
+                                  corner_button_rect.height))
             {
               ButtonWasPressed = true;
               MenuOpened = false;
@@ -329,6 +410,11 @@ int main()
                     corner_button_rect.y + corner_button_rect.height / 2, 45,
                     square_button_size, square_button_size / 8, RED);
         }
+      }
+
+      if (Clicked)
+      {
+        TypingIndex = -1;
       }
 
       LogAppend("INFO(Mouse): X %.0f Y %.0f PressedX %.0f PressedY %.0f \n",
