@@ -81,7 +81,7 @@ int main()
 
           if (SlicesCount == 0)
           {
-            DrawWheel(0, wheel_radius, DefaultSlices, ColorsAmount);
+            DrawWheel(0, wheel_radius, DefaultSlices, COLORS_AMOUNT);
           }
           else
           {
@@ -146,7 +146,7 @@ int main()
           float slice_item_border = ScreenWidth / 500;
 
           // draw a button to add a slice
-          if (SlicesCount == 0 || SlicesCount < ColorsAmount)
+          if (SlicesCount == 0 || SlicesCount < COLORS_AMOUNT)
           {
             Rectangle add_button = {
                 side_padding,

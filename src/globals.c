@@ -35,7 +35,7 @@ typedef struct
 typedef struct
 {
   char* Name;
-  Color Color;
+  int Color;
 } Slice;
 
 static float ScreenWidth = 0;
@@ -54,62 +54,54 @@ static bool ButtonWasPressed = false;
 static bool Clicked = false;
 static int TypingIndex = -1;
 
+// LucasTA: This is the coolest shit ever
+#define COLOR_LIST \
+  X(LIGHTGRAY)     \
+  X(GRAY)          \
+  X(DARKGRAY)      \
+  X(YELLOW)        \
+  X(GOLD)          \
+  X(ORANGE)        \
+  X(PINK)          \
+  X(RED)           \
+  X(MAROON)        \
+  X(GREEN)         \
+  X(LIME)          \
+  X(DARKGREEN)     \
+  X(SKYBLUE)       \
+  X(BLUE)          \
+  X(DARKBLUE)      \
+  X(PURPLE)        \
+  X(VIOLET)        \
+  X(DARKPURPLE)    \
+  X(BEIGE)         \
+  X(BROWN)         \
+  X(DARKBROWN)     \
+  X(WHITE)         \
+  X(BLACK)         \
+  X(MAGENTA)
+
+#define X(color) COLOR_##color,
+enum ColorEnum
+{
+  COLOR_LIST COLORS_AMOUNT
+};
+#undef X
+
+#define X(color) color,
 static const Color Colors[] = {
-    LIGHTGRAY,   // Light Gray
-    GRAY,        // Gray
-    DARKGRAY,    // Dark Gray
-    YELLOW,      // Yellow
-    GOLD,        // Gold
-    ORANGE,      // Orange
-    PINK,        // Pink
-    RED,         // Red
-    MAROON,      // Maroon
-    GREEN,       // Green
-    LIME,        // Lime
-    DARKGREEN,   // Dark Green
-    SKYBLUE,     // Sky Blue
-    BLUE,        // Blue
-    DARKBLUE,    // Dark Blue
-    PURPLE,      // Purple
-    VIOLET,      // Violet
-    DARKPURPLE,  // Dark Purple
-    BEIGE,       // Beige
-    BROWN,       // Brown
-    DARKBROWN,   // Dark Brown
-    WHITE,       // White
-    BLACK,       // Black
-    MAGENTA,     // Magenta
+  COLOR_LIST
 };
-constexpr int ColorsAmount = ARRAY_LENGTH(Colors);
+#undef X
 
-static Slice DefaultSlices[] = {
-    {"Light Gray", LIGHTGRAY},
-    {"Gray", GRAY},
-    {"Dark Gray", DARKGRAY},
-    {"Yellow", YELLOW},
-    {"Gold", GOLD},
-    {"Orange", ORANGE},
-    {"Pink", PINK},
-    {"Red", RED},
-    {"Maroon", MAROON},
-    {"Green", GREEN},
-    {"Lime", LIME},
-    {"Dark Green", DARKGREEN},
-    {"Sky Blue", SKYBLUE},
-    {"Blue", BLUE},
-    {"Dark Blue", DARKBLUE},
-    {"Purple", PURPLE},
-    {"Violet", VIOLET},
-    {"Dark Purple", DARKPURPLE},
-    {"Beige", BEIGE},
-    {"Brown", BROWN},
-    {"Dark Brown", DARKBROWN},
-    {"White", WHITE},
-    {"Black", BLACK},
-    {"Magenta", MAGENTA},
+#define X(color) {#color, COLOR_##color},
+static const Slice DefaultSlices[] = {
+  COLOR_LIST
 };
+#undef X
 
-static Slice Slices[ColorsAmount];
+
+static Slice Slices[COLORS_AMOUNT];
 static int SlicesCount = 0;
 
 #endif  // PICKLE_GLOBALS

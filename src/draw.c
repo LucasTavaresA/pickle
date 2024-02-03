@@ -214,7 +214,7 @@ static void DrawRectangleGrid(float x,
 
 static void DrawWheel(float angle,
                       float radius,
-                      Slice* slices,
+                      const Slice* slices,
                       int slice_amount)
 {
   Vector2 center = {(float)ScreenWidth / 2, (float)ScreenHeight / 2};
@@ -224,7 +224,7 @@ static void DrawWheel(float angle,
 
   for (int i = 0; i < slice_amount; i++)
   {
-    DrawCircleSector(center, radius, startAngle, endAngle, 0, slices[i].Color);
+    DrawCircleSector(center, radius, startAngle, endAngle, 0, Colors[slices[i].Color]);
 
     float midAngle = ((startAngle + endAngle) / 2) - FontSize / 8;
     Vector2 labelPosition = {
