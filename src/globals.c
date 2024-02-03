@@ -54,7 +54,6 @@ static bool ButtonWasPressed = false;
 static bool Clicked = false;
 static int TypingIndex = -1;
 
-#define ColorsAmount ARRAY_LENGTH(Colors)
 static const Color Colors[] = {
     LIGHTGRAY,   // Light Gray
     GRAY,        // Gray
@@ -81,6 +80,7 @@ static const Color Colors[] = {
     BLACK,       // Black
     MAGENTA,     // Magenta
 };
+constexpr int ColorsAmount = ARRAY_LENGTH(Colors);
 
 static Slice DefaultSlices[] = {
     {"Light Gray", LIGHTGRAY},
@@ -112,4 +112,4 @@ static Slice DefaultSlices[] = {
 static Slice Slices[ColorsAmount];
 static int SlicesCount = 0;
 
-#endif // PICKLE_GLOBALS
+#endif  // PICKLE_GLOBALS

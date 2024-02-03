@@ -41,4 +41,4 @@ static char LogMessage[1024] = "";
   LogMessage[sizeof(LogMessage) - 1] = '\0';
 #endif
 
-#endif // PICKLE_LOG
+#endif  // PICKLE_LOG

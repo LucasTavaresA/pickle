@@ -155,130 +155,6 @@ static void DrawTextBox(float x,
   DrawTextEx(Fonte, text, (Vector2){textX, textY}, fontSize, 2, textColor);
 }
 
-static void DrawButton(float x,
-                       float y,
-                       float width,
-                       float height,
-                       char* text,
-                       Color textColor,
-                       Color backgroundColor,
-                       Color pressedColor,
-                       Color hoveredColor,
-                       Color borderColor,
-                       float borderThickness,
-                       ShadowStyle shadowStyle)
-{
-  if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
-      IsPointInsideRect(MouseX, MouseY, x, y, width, height))
-  {
-    // if (Calculator.Commands.TryGetValue(text, out Action command))
-    // {
-    //   command();
-    // }
-    // else
-    // {
-    //   Calculator.ErrorMessage = $ "The '{text}' button does not have a
-    //       command defined !\n ";
-    // }
-  }
-  else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) &&
-           IsPointInsideRect(MousePressedX, MousePressedY, x, y, width, height))
-  {
-    if (shadowStyle.Distance > 0)
-    {
-      x += shadowStyle.Distance;
-      y += shadowStyle.Distance;
-    }
-
-    DrawTextBox(x, y, width, height, text, textColor, FontSize, pressedColor,
-                borderThickness, borderColor, shadowStyle);
-
-    //   if (Calculator.Commands.TryGetValue(text, out Action command))
-    //   {
-    //     command();
-    //   }
-    //   else
-    //   {
-    //     Calculator.ErrorMessage = $ "The '{text}' button does not have a
-    //     command
-    //         defined !\n ";
-    //   }
-  }
-  else
-  {
-    DrawTextBox(x, y, width, height, text, textColor, FontSize,
-                IsPointInsideRect(MouseX, MouseY, x, y, width, height)
-                    ? hoveredColor
-                    : backgroundColor,
-                borderThickness, borderColor, shadowStyle);
-  }
-}
-
-static void DrawButtonGrid(float x,
-                           float y,
-                           float width,
-                           float height,
-                           float padding,
-                           ButtonRow rows[],
-                           int rowsAmount)
-{
-  float availableHeight = height - (padding * (rowsAmount - 1));
-  float curY = y;
-  float takenHeight = 0;
-
-  for (int i = 0; i < rowsAmount; i++)
-  {
-    float rowLength = availableHeight * rows[i].HeightPercentage / 100;
-
-    float availableWidth = width - (padding * (rows[i].ButtonCount - 1));
-    float curX = x;
-    float takenWidth = 0;
-
-    for (int j = 0; j < rows[i].ButtonCount; j++)
-    {
-      float colLength =
-          availableWidth * rows[i].Buttons[j].WidthPercentage / 100;
-
-      DrawButton(curX, curY, colLength, rowLength, rows[i].Buttons[j].Text,
-                 rows[i].Buttons[j].Style.TextColor,
-                 rows[i].Buttons[j].Style.BackgroundColor,
-                 rows[i].Buttons[j].Style.PressedColor,
-                 rows[i].Buttons[j].Style.HoveredColor,
-                 rows[i].Buttons[j].Style.BorderColor,
-                 rows[i].Buttons[j].Style.BorderThickness,
-                 rows[i].Buttons[j].Style.ShadowStyle);
-
-      curX += colLength + padding;
-      takenWidth += colLength;
-
-      LogIfBadContrast(
-          rows[i].Buttons[j].Style.BackgroundColor,
-          rows[i].Buttons[j].Style.BorderColor,
-          "ERROR: Bad border contrast at [%.0f, %.0f] Grid, [%d, %d] Button", x,
-          y, i, j);
-
-      LogIfTrue(takenWidth > availableWidth,
-                "ERROR: Button grid at [%.0f, %.0f], %d column takes more than "
-                "the available width!\n",
-                x, y, j + 1);
-
-      // LogIfTrue(
-      //     !Calculator.Commands.ContainsKey(rows[i].Buttons[j].Text),
-      //     "ERROR: The '%c' button does not have a command defined!\n",
-      //     rows[i].Buttons[j].Text
-      // );
-    }
-
-    curY += rowLength + padding;
-    takenHeight += rowLength;
-
-    LogIfTrue(takenHeight > availableHeight,
-              "ERROR: Button grid at [%.0f, %.0f], %d row takes more than the "
-              "available height!\n",
-              x, y, i + 1);
-  }
-}
-
 static void DrawRectangleGrid(float x,
                               float y,
                               float width,
@@ -343,8 +219,8 @@ static void DrawWheel(float angle,
 {
   Vector2 center = {(float)ScreenWidth / 2, (float)ScreenHeight / 2};
   float sectionSize = 360.0f / slice_amount;
-  float startAngle = 0;
-  float endAngle = sectionSize;
+  float startAngle = angle;
+  float endAngle = sectionSize + angle;
 
   for (int i = 0; i < slice_amount; i++)
   {

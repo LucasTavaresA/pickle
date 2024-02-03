@@ -118,9 +118,12 @@ int main()
 
           // Draw a menu icon
           Row rows[] = {
-              {33.33f, 1, (Column[]){(Column){100, FOREGROUND_COLOR}}},
-              {33.33f, 1, (Column[]){(Column){100, FOREGROUND_COLOR}}},
-              {33.33f, 1, (Column[]){(Column){100, FOREGROUND_COLOR}}},
+              {33.33f, 1,
+               (Column[]){(Column){.Width = 100, .Color = FOREGROUND_COLOR}}},
+              {33.33f, 1,
+               (Column[]){(Column){.Width = 100, .Color = FOREGROUND_COLOR}}},
+              {33.33f, 1,
+               (Column[]){(Column){.Width = 100, .Color = FOREGROUND_COLOR}}},
           };
 
           DrawRectangleGrid(corner_button_rect.x + (square_button_size / 8),
@@ -351,9 +354,12 @@ int main()
                     square_button_size / 2 - square_button_padding * 2,
                     square_button_size / 2 - square_button_padding * 2, 3,
                     (Row[]){100, 3,
-                            (Column[]){(Column){33.33f, RED_HIGHLIGHT_COLOR},
-                                       (Column){33.33f, RED_HIGHLIGHT_COLOR},
-                                       (Column){33.33f, RED_HIGHLIGHT_COLOR}}},
+                            (Column[]){(Column){.Width = 33.33f,
+                                                .Color = RED_HIGHLIGHT_COLOR},
+                                       (Column){.Width = 33.33f,
+                                                .Color = RED_HIGHLIGHT_COLOR},
+                                       (Column){.Width = 33.33f,
+                                                .Color = RED_HIGHLIGHT_COLOR}}},
                     1);
 
                 // trash can handle
