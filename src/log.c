@@ -14,7 +14,7 @@
 #define LogDraw(...)
 #define LogAppend(...)
 #else
-static char LogMessage[1024] = "";
+static char LogMessage[10240] = "";
 
 #define LogAppend(formatStr, ...) \
   sprintf(LogMessage + strlen(LogMessage), formatStr, ##__VA_ARGS__);

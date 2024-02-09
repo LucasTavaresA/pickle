@@ -186,11 +186,6 @@ static void DrawRectangleGrid(float x,
       {
         DrawRectangleLinesEx(rect, rows[i].Columns[j].BorderThickness,
                              rows[i].Columns[j].BorderColor);
-
-        LogIfBadContrast(
-            rows[i].Columns[j].Color, rows[i].Columns[j].BorderColor,
-            "ERROR: Bad border contrast at [%.0f, %.0f] Grid, [%d, %d] Column",
-            x, y, i, j);
       }
 
       curX += colLength + padding;

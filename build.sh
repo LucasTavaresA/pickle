@@ -36,7 +36,7 @@ main() {
 				REBUILD=1
 				;;
 			"-R")
-				BUILD_FLAGS="-DRELEASE"
+				BUILD_FLAGS="$BUILD_FLAGS -DRELEASE"
 				;;
 			"android")
 				ANDROID=1
