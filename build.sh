@@ -5,7 +5,7 @@ LINUX=0
 ANDROID=0
 REDOWNLOAD=0
 REBUILD=0
-BUILD_FLAGS="-ggdb -std=c2x -Wall -Wextra -Wshadow"
+BUILD_FLAGS="-ggdb -Wall -Wextra -Wshadow"
 PROGRAM="pickle"
 MAINTAINER="lucasta"
 SOURCE="https://dl.google.com/android/repository/"
@@ -90,7 +90,7 @@ main() {
 			)
 		fi
 
-		cc src/main.c -I./raylib/src/ $BUILD_FLAGS -L./lib/desktop/ -lraylib -lm -o $PROGRAM
+		cc src/main.c -I./raylib/src/ $BUILD_FLAGS -L./lib/desktop/ -lraylib -lm -o $PROGRAM || exit 1
 
 		if [ "$RUN" = 1 ]; then
 			./$PROGRAM
@@ -118,10 +118,11 @@ main() {
 			if [ ! -e "archives/$CMD_TOOLS" ] || [ ! -e "archives/$NDK-linux.zip" ]; then
 				wget -P ./archives/ "$SOURCE$CMD_TOOLS"
 				wget -P ./archives/ "$SOURCE$NDK-linux.zip"
+			fi
 
-				unzip -q ./archives/$CMD_TOOLS -d android/sdk
-				unzip -q ./archives/$NDK-linux.zip
-
+			if [ ! -d "android/sdk" ] || [ ! -d "android/ndk" ]; then
+				unzip -n -q ./archives/$CMD_TOOLS -d android/sdk
+				unzip -n -q ./archives/$NDK-linux.zip
 				mv ./$NDK ./android/ndk
 			fi
 
