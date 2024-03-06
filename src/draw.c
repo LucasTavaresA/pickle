@@ -1,3 +1,5 @@
+#ifndef PICKLE_DRAW
+#define PICKLE_DRAW
 #include <math.h>
 
 #include "../raylib/src/raylib.h"
@@ -30,6 +32,24 @@ typedef struct
 
 typedef struct
 {
+  float Width;
+  Color Color;
+  Color BorderColor;
+  float BorderThickness;
+} Column;
+
+typedef struct
+{
+  float Height;
+  int ColumnCount;
+  Column* Columns;
+} Row;
+
+typedef struct
+{
+  int WidthPercentage;
+  char* Text;
+  int FontSize;
   Color TextColor;
   Color BackgroundColor;
   Color PressedColor;
@@ -37,20 +57,15 @@ typedef struct
   Color BorderColor;
   float BorderThickness;
   ShadowStyle ShadowStyle;
-} ButtonStyle;
-
-typedef struct
-{
-  float WidthPercentage;
-  char* Text;
-  ButtonStyle Style;
+  void (*Callback)(int ButtonIndex, void* CallbackArgs);
+  void* CallbackArgs;
 } Button;
 
 typedef struct
 {
-  float HeightPercentage;
-  int ButtonCount;
-  Button Buttons[];
+  int HeightPercentage;
+  int ColumnAmount;
+  Button* Columns;
 } ButtonRow;
 
 static void DrawShadow(float x,
@@ -118,11 +133,11 @@ static void DrawTextBox(float x,
                         float width,
                         float height,
                         char* text,
-                        Color textColor,
                         float fontSize,
+                        Color textColor,
                         Color backgroundColor,
-                        float borderThickness,
                         Color borderColor,
+                        float borderThickness,
                         ShadowStyle shadowStyle)
 {
   LogIfBadContrast(
@@ -152,7 +167,8 @@ static void DrawTextBox(float x,
     DrawRectangleLinesEx(rec, borderThickness, borderColor);
   }
 
-  DrawTextEx(Fonte, text, (Vector2){textX, textY}, fontSize, 2, textColor);
+  DrawTextEx(Fonte, text, (Vector2){textX, textY}, fontSize, TEXT_SPACING,
+             textColor);
 }
 
 static void DrawRectangleGrid(float x,
@@ -160,7 +176,7 @@ static void DrawRectangleGrid(float x,
                               float width,
                               float height,
                               float padding,
-                              Row* rows,
+                              const Row* rows,
                               int rows_amount)
 {
   float availableHeight = height - (padding * (rows_amount - 1));
@@ -219,7 +235,8 @@ static void DrawWheel(float angle,
 
   for (int i = 0; i < slice_amount; i++)
   {
-    DrawCircleSector(center, radius, startAngle, endAngle, 0, Colors[slices[i].Color]);
+    DrawCircleSector(center, radius, startAngle, endAngle, 0,
+                     Colors[slices[i].Color]);
 
     float midAngle = ((startAngle + endAngle) / 2) - FontSize / 8;
     Vector2 labelPosition = {
@@ -228,7 +245,7 @@ static void DrawWheel(float angle,
 
     DrawTextPro(Fonte, slices[i].Name, labelPosition, (Vector2){0.5f, 0.5f},
                 midAngle, FontSize / 1.2, TEXT_SPACING,
-                GetContrastedTextColor(Colors[i]));
+                GetContrastedTextColor(Colors[slices[i].Color]));
 
     startAngle += sectionSize;
     endAngle += sectionSize;
@@ -274,3 +291,168 @@ static void DrawCross(float x,
   DrawLineEx(startHorizontal, endHorizontal, thickness, color);
   DrawLineEx(startVertical, endVertical, thickness, color);
 }
+
+static void DrawButton(
+  float x,
+  float y,
+  float width,
+  float height,
+  char* text,
+  int fontSize,
+  Color textColor,
+  Color backgroundColor,
+  Color pressedColor,
+  Color hoveredColor,
+  Color borderColor,
+  int borderThickness,
+  ShadowStyle shadowStyle,
+  void (*callback)(int buttonIndex, void* callbackArgs),
+  int buttonIndex,
+  void* callbackArgs
+)
+{
+    if (
+        IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
+        && IsPointInsideRect(MouseX, MouseY, x, y, width, height)
+    )
+    {
+        if (callback != NULL)
+        {
+            callback(buttonIndex, callbackArgs);
+        }
+        else
+        {
+            LogAppend("The '%s' button does not have a command defined!\n", text);
+        }
+
+        ButtonPressedTime = 0;
+    }
+    else if (
+        IsMouseButtonDown(MOUSE_BUTTON_LEFT)
+        && IsPointInsideRect(
+            MousePressedX,
+            MousePressedY,
+            x,
+            y,
+            width,
+            height
+        )
+    )
+    {
+        if (shadowStyle.Distance > 0)
+        {
+            x += shadowStyle.Distance;
+            y += shadowStyle.Distance;
+        }
+
+        DrawTextBox(
+            x,
+            y,
+            width,
+            height,
+            text,
+            fontSize,
+            textColor,
+            pressedColor,
+            borderColor,
+            borderThickness,
+            shadowStyle
+        );
+
+        if (ButtonPressedTime >= KeyRepeatInterval)
+        {
+          if (callback != NULL)
+          {
+              callback(buttonIndex, callbackArgs);
+          }
+          else
+          {
+              LogAppend("The '%s' button does not have a command defined!\n", text);
+          }
+        }
+
+        ButtonPressedTime += GetFrameTime();
+    }
+    else
+    {
+        DrawTextBox(
+            x,
+            y,
+            width,
+            height,
+            text,
+            fontSize,
+            textColor,
+            IsPointInsideRect(MouseX, MouseY, x, y, width, height)
+                ? hoveredColor
+                : backgroundColor,
+            borderColor,
+            borderThickness,
+            shadowStyle
+        );
+    }
+}
+
+static void DrawButtonGrid(float x,
+                            float y,
+                            float width,
+                            float height,
+                            float padding,
+                            const ButtonRow* rows,
+                            int rows_amount)
+{
+  LogIfTrue(x < 0 || y < 0 || width <= 0 || height <= 0 ||
+                x + width > ScreenWidth || y + height > ScreenHeight,
+            "ERROR: Button grid is outside of the screen!\n");
+
+  float availableHeight = height - (padding * (rows_amount - 1));
+  float curY = y;
+  float takenHeight = 0;
+
+  for (int i = 0; i < rows_amount; i++)
+  {
+    float rowLength = availableHeight * rows[i].HeightPercentage / 100;
+
+    float availableWidth = width - (padding * (rows[i].ColumnAmount - 1));
+    float curX = x;
+    float takenWidth = 0;
+
+    for (int j = 0; j < rows[i].ColumnAmount; j++)
+    {
+      float colLength =
+          availableWidth * rows[i].Columns[j].WidthPercentage / 100;
+
+      DrawButton(curX, curY, colLength, rowLength, rows[i].Columns[j].Text,
+                  rows[i].Columns[j].FontSize,
+                  rows[i].Columns[j].TextColor,
+                  rows[i].Columns[j].BackgroundColor,
+                  rows[i].Columns[j].PressedColor,
+                  rows[i].Columns[j].HoveredColor,
+                  rows[i].Columns[j].BorderColor,
+                  rows[i].Columns[j].BorderThickness,
+                  rows[i].Columns[j].ShadowStyle,
+                  rows[i].Columns[j].Callback,
+                  j,
+                  rows[i].Columns[j].CallbackArgs
+                 );
+
+      curX += colLength + padding;
+      takenWidth += colLength;
+
+      LogIfTrue(
+          takenWidth > availableWidth,
+          "ERROR: Button grid %d column takes more than the available width!\n",
+          j + 1);
+    }
+
+    curY += rowLength + padding;
+    takenHeight += rowLength;
+
+    LogIfTrue(
+        takenHeight > availableHeight,
+        "ERROR: Button grid %d row takes more than the available height!\n",
+        i + 1);
+  }
+}
+
+#endif  // PICKLE_DRAW

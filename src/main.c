@@ -6,6 +6,17 @@
 #include "globals.c"
 #include "log.c"
 
+typedef struct
+{
+  int SliceIndex;
+} ColorPickArgs;
+
+void ColorPick(int buttonIndex, void* _args)
+{
+  ColorPickArgs* args = (ColorPickArgs*)_args;
+  Slices[args->SliceIndex].Color = buttonIndex;
+}
+
 int main()
 {
   SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT);
@@ -200,100 +211,156 @@ int main()
                     i * slice_item_height,
                 slice_item_width, slice_item_height};
 
-            Vector2 item_name_text_size = MeasureTextEx(
-                Fonte, Slices[i].Name, FontSize * 2, TEXT_SPACING);
-
-            Rectangle item_name_rect = {
-                side_padding + square_button_padding,
-                (ScreenWidth < ScreenHeight
-                     ? square_button_size + square_button_padding
-                     : 0) +
-                    i * slice_item_height + square_button_padding,
-                item_name_text_size.x + square_button_padding,
-                item_name_text_size.y + square_button_padding};
-
-            ShadowStyle item_name_shadow = {0};
-
             // slice item outline
             DrawRectangleLinesEx(item_rect, slice_item_border,
                                  FOREGROUND_COLOR);
 
-            // TODO(LucasTA): Handle mobile with builtin keyboard
-            if (TypingIndex == i)
+            // draw color pallete
             {
-              size_t name_length = strlen(Slices[i].Name);
-              char display_name[name_length + 2];
-              snprintf(display_name, name_length + 2, "%s|", Slices[i].Name);
+              ButtonRow pallete = {100, COLORS_AMOUNT,
+                                   (Button[COLORS_AMOUNT]){{0}}};
+              ShadowStyle ss = {0};
+              float pallete_x = side_padding + square_button_padding;
+              float pallete_y =
+                  i * slice_item_height + slice_item_height / 2 -
+                  square_button_padding +
+                  (ScreenWidth < ScreenHeight
+                       ? square_button_size + square_button_padding
+                       : 0);
+              float pallete_height = slice_item_height / 2;
+              float pallete_column_percentage = 100.0f / COLORS_AMOUNT;
+              float pallete_width =
+                  slice_item_width - square_button_padding * 2 -
+                  (ScreenWidth < ScreenHeight ? square_button_size : 0);
 
-              DrawTextBox(item_name_rect.x, item_name_rect.y,
-                          item_name_rect.width, item_name_rect.height,
-                          display_name, FOREGROUND_COLOR, FontSize,
-                          HIGHLIGHT_COLOR, slice_item_border, FOREGROUND_COLOR,
-                          item_name_shadow);
-
-              if (IsKeyPressed(KEY_BACKSPACE))
+              for (int c = 0; c < COLORS_AMOUNT; c++)
               {
-                Slices[i].Name[name_length - 1] = '\0';
-                BackspacePressedTime = 0;
+                pallete.Columns[c] = (Button){
+                    pallete_column_percentage,
+                    "",
+                    FontSize,
+                    FOREGROUND_COLOR,
+                    Colors[c],
+                    Colors[c],
+                    Colors[c],
+                    c == Slices[i].Color ? FOREGROUND_COLOR : HIGHLIGHT_COLOR,
+                    square_button_padding,
+                    ss,
+                    ColorPick,
+                    &(ColorPickArgs){i}};
               }
-              else if (IsKeyDown(KEY_BACKSPACE))
+
+              DrawButtonGrid(pallete_x, pallete_y, pallete_width,
+                             pallete_height, square_button_padding, &pallete,
+                             1);
+            }
+
+            // TODO(LucasTA):
+            //   make android keyboard
+            //   separate into function DrawTextField()
+            //   make color picker buttons bigger on android
+            // draw editable text box
+            {
+              Vector2 item_name_text_size = MeasureTextEx(
+                  Fonte, Slices[i].Name, FontSize * 2, TEXT_SPACING);
+
+              Rectangle item_name_rect = {
+                  side_padding + square_button_padding,
+                  (ScreenWidth < ScreenHeight
+                       ? square_button_size + square_button_padding
+                       : 0) +
+                      i * slice_item_height + square_button_padding,
+                  fmax(item_name_text_size.x, square_button_size) +
+                      square_button_padding,
+                  item_name_text_size.y};
+
+              ShadowStyle item_name_shadow = {0};
+
+              if (TypingIndex == i)
               {
-                if (BackspacePressedTime >= KEY_REPEAT_INTERVAL)
+                size_t name_length = strlen(Slices[i].Name);
+                char display_name[name_length + 2];
+                snprintf(display_name, name_length + 2, "%s|", Slices[i].Name);
+
+                DrawTextBox(item_name_rect.x, item_name_rect.y,
+                            item_name_rect.width, item_name_rect.height,
+                            display_name, FontSize, FOREGROUND_COLOR,
+                            HIGHLIGHT_COLOR, FOREGROUND_COLOR,
+                            slice_item_border, item_name_shadow);
+
+                if (IsKeyPressed(KEY_BACKSPACE))
                 {
                   Slices[i].Name[name_length - 1] = '\0';
-                  BackspacePressedTime = 0;
+                  ButtonPressedTime = 0;
+                  KeyRepeatInterval = INITIAL_REPEAT_INTERVAL;
                 }
-
-                BackspacePressedTime += GetFrameTime();
-              }
-              else
-              {
-                BackspacePressedTime = 0;
-
-                if (item_name_rect.width <
-                    item_rect.width - square_button_size * 2)
+                else if (IsKeyDown(KEY_BACKSPACE))
                 {
-                  int keycode = GetCharPressed();
+                  ButtonPressedTime += GetFrameTime();
 
-                  if (keycode == ' ' || isalnum(keycode))
+                  if (ButtonPressedTime >= KeyRepeatInterval)
                   {
-                    Slices[i].Name[name_length] = tolower(keycode);
-                    Slices[i].Name[name_length + 1] = '\0';
+                    Slices[i].Name[name_length - 1] = '\0';
+                    ButtonPressedTime = 0;
+                    // Decrease repeat interval gradually down to the minimum
+                    KeyRepeatInterval =
+                        fmax(KeyRepeatInterval * 0.3f, MIN_REPEAT_INTERVAL);
+                  }
+                }
+                else
+                {
+                  ButtonPressedTime += GetFrameTime();
+
+                  if (ButtonPressedTime >= KeyRepeatInterval &&
+                      item_name_rect.width <
+                          item_rect.width - square_button_size * 2)
+                  {
+                    int keycode = GetCharPressed();
+
+                    if (keycode == ' ' || isalnum(keycode))
+                    {
+                      Slices[i].Name[name_length] = tolower(keycode);
+                      Slices[i].Name[name_length + 1] = '\0';
+
+                      ButtonPressedTime = 0;
+                      KeyRepeatInterval =
+                          fmax(KeyRepeatInterval * 0.2f, MIN_REPEAT_INTERVAL);
+                    }
                   }
                 }
               }
-            }
-            else if (IsPointInsideRect(MouseX, MouseY, item_name_rect.x,
-                                       item_name_rect.y, item_name_rect.width,
-                                       item_name_rect.height))
-            {
-              if (IsCursorOnScreen() || TouchCount > 0)
+              else if (IsPointInsideRect(MouseX, MouseY, item_name_rect.x,
+                                         item_name_rect.y, item_name_rect.width,
+                                         item_name_rect.height))
+              {
+                if (IsCursorOnScreen() || TouchCount > 0)
+                {
+                  DrawTextBox(item_name_rect.x, item_name_rect.y,
+                              item_name_rect.width, item_name_rect.height,
+                              Slices[i].Name, FontSize, FOREGROUND_COLOR,
+                              HIGHLIGHT_COLOR, HIGHLIGHT_COLOR,
+                              slice_item_border, item_name_shadow);
+                }
+
+                if (!ButtonWasPressed &&
+                    IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
+                    IsPointInsideRect(MousePressedX, MousePressedY,
+                                      item_name_rect.x, item_name_rect.y,
+                                      item_name_rect.width,
+                                      item_name_rect.height))
+                {
+                  ButtonWasPressed = true;
+                  TypingIndex = i;
+                }
+              }
+              else
               {
                 DrawTextBox(item_name_rect.x, item_name_rect.y,
                             item_name_rect.width, item_name_rect.height,
-                            Slices[i].Name, FOREGROUND_COLOR, FontSize,
-                            HIGHLIGHT_COLOR, slice_item_border, HIGHLIGHT_COLOR,
-                            item_name_shadow);
+                            Slices[i].Name, FontSize, FOREGROUND_COLOR,
+                            BACKGROUND_COLOR, HIGHLIGHT_COLOR,
+                            slice_item_border, item_name_shadow);
               }
-
-              if (!ButtonWasPressed &&
-                  IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
-                  IsPointInsideRect(MousePressedX, MousePressedY,
-                                    item_name_rect.x, item_name_rect.y,
-                                    item_name_rect.width,
-                                    item_name_rect.height))
-              {
-                ButtonWasPressed = true;
-                TypingIndex = i;
-              }
-            }
-            else
-            {
-              DrawTextBox(item_name_rect.x, item_name_rect.y,
-                          item_name_rect.width, item_name_rect.height,
-                          Slices[i].Name, FOREGROUND_COLOR, FontSize,
-                          BACKGROUND_COLOR, slice_item_border, HIGHLIGHT_COLOR,
-                          item_name_shadow);
             }
 
             // draw a trash button to delete slices
