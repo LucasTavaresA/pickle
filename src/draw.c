@@ -55,9 +55,9 @@ typedef struct
   Color PressedColor;
   Color HoveredColor;
   Color BorderColor;
-  float BorderThickness;
+  int BorderThickness;
   ShadowStyle ShadowStyle;
-  void (*Callback)(int ButtonIndex, void* CallbackArgs);
+  void (*Callback)(int ButtonRow, int ButtonColumn, void* CallbackArgs);
   void* CallbackArgs;
 } Button;
 
@@ -306,8 +306,9 @@ static void DrawButton(
   Color borderColor,
   int borderThickness,
   ShadowStyle shadowStyle,
-  void (*callback)(int buttonIndex, void* callbackArgs),
-  int buttonIndex,
+  void (*callback)(int buttonRow, int buttonColumn, void* callbackArgs),
+  int buttonRow,
+  int buttonColumn,
   void* callbackArgs
 )
 {
@@ -318,7 +319,7 @@ static void DrawButton(
     {
         if (callback != NULL)
         {
-            callback(buttonIndex, callbackArgs);
+            callback(buttonRow, buttonColumn, callbackArgs);
         }
         else
         {
@@ -363,7 +364,7 @@ static void DrawButton(
         {
           if (callback != NULL)
           {
-              callback(buttonIndex, callbackArgs);
+              callback(buttonRow, buttonColumn, callbackArgs);
           }
           else
           {
@@ -432,6 +433,7 @@ static void DrawButtonGrid(float x,
                   rows[i].Columns[j].BorderThickness,
                   rows[i].Columns[j].ShadowStyle,
                   rows[i].Columns[j].Callback,
+                  i,
                   j,
                   rows[i].Columns[j].CallbackArgs
                  );

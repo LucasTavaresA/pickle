@@ -11,6 +11,10 @@
 #define MIN_REPEAT_INTERVAL 0.03f     // Minimum repeat interval in seconds
 #define FOREGROUND_COLOR BLACK
 #define BACKGROUND_COLOR WHITE
+#define PALLETE_ROW_AMOUNT 2
+#define PALLETE_COL_AMOUNT (COLORS_AMOUNT / PALLETE_ROW_AMOUNT)
+#define PALLETE_ROW_PERCENTAGE 100 / (PALLETE_ROW_AMOUNT)
+#define PALLETE_COL_PERCENTAGE 100 / (PALLETE_COL_AMOUNT)
 #define HIGHLIGHT_COLOR \
   (Color)               \
   {                     \

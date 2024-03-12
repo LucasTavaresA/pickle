@@ -35,7 +35,7 @@ static char LogMessage[10240] = "";
     sprintf(LogMessage + strlen(LogMessage), formatStr, ##__VA_ARGS__); \
   }
 
-#define LogDraw() DrawText(LogMessage, 0, 0, 20, RED)
+#define LogDraw() DrawText(LogMessage, 0, 0, 20, BLUE)
 #define LogSet(message)                             \
   strncpy(LogMessage, message, sizeof(LogMessage)); \
   LogMessage[sizeof(LogMessage) - 1] = '\0';
