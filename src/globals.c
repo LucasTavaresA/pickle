@@ -32,16 +32,16 @@ typedef struct
   int Color;
 } Slice;
 
-static float ScreenWidth = 0;
-static float ScreenHeight = 0;
-static float ScreenPadding = 0;
-static float MouseX = 0;
-static float MouseY = 0;
-static float MousePressedX = 0;
-static float MousePressedY = 0;
+static int ScreenWidth = 0;
+static int ScreenHeight = 0;
+static int ScreenPadding = 0;
+static int MouseX = 0;
+static int MouseY = 0;
+static int MousePressedX = 0;
+static int MousePressedY = 0;
 static int TouchCount = 0;
 static Font Fonte;
-static float FontSize = 0;
+static int FontSize = 0;
 static bool MenuOpened = false;
 static bool ButtonWasPressed = false;
 static float ButtonPressedTime = 0;

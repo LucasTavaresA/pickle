@@ -25,22 +25,22 @@ typedef enum
 
 typedef struct
 {
-  float Distance;
+  int Distance;
   Color Color;
   ShadowKind Kind;
 } ShadowStyle;
 
 typedef struct
 {
-  float Width;
+  int Width;
   Color Color;
   Color BorderColor;
-  float BorderThickness;
+  int BorderThickness;
 } Column;
 
 typedef struct
 {
-  float Height;
+  int Height;
   int ColumnCount;
   Column* Columns;
 } Row;
@@ -68,10 +68,10 @@ typedef struct
   Button* Columns;
 } ButtonRow;
 
-static void DrawShadow(float x,
-                       float y,
-                       float width,
-                       float height,
+static void DrawShadow(int x,
+                       int y,
+                       int width,
+                       int height,
                        ShadowStyle shadowStyle,
                        Color outlineColor)
 {
@@ -128,30 +128,30 @@ static void DrawShadow(float x,
   }
 }
 
-static void DrawTextBox(float x,
-                        float y,
-                        float width,
-                        float height,
+static void DrawTextBox(int x,
+                        int y,
+                        int width,
+                        int height,
                         char* text,
-                        float fontSize,
+                        int fontSize,
                         Color textColor,
                         Color backgroundColor,
                         Color borderColor,
-                        float borderThickness,
+                        int borderThickness,
                         ShadowStyle shadowStyle)
 {
-  LogIfBadContrast(
-      backgroundColor, textColor,
-      "ERROR: The text at the %.0f,%.0f text box is not visible!\n", x, y);
+  LogIfBadContrast(backgroundColor, textColor,
+                   "ERROR: The text at the %d,%d text box is not visible!\n", x,
+                   y);
 
   Vector2 textSize = MeasureTextEx(Fonte, text, fontSize, TEXT_SPACING);
 
   LogIfTrue(textSize.x > width || textSize.y > height,
-            "ERROR: The text at the %.0f,%.0f text box does not fit its box!\n",
-            x, y);
+            "ERROR: The text at the %d,%d text box does not fit its box!\n", x,
+            y);
 
-  float textX = x + ((width - textSize.x) / 2);
-  float textY = y + ((height - textSize.y) / 2);
+  int textX = x + ((width - textSize.x) / 2);
+  int textY = y + ((height - textSize.y) / 2);
 
   Rectangle rec = {x, y, width, height};
 
@@ -171,29 +171,29 @@ static void DrawTextBox(float x,
              textColor);
 }
 
-static void DrawRectangleGrid(float x,
-                              float y,
-                              float width,
-                              float height,
-                              float padding,
+static void DrawRectangleGrid(int x,
+                              int y,
+                              int width,
+                              int height,
+                              int padding,
                               const Row* rows,
                               int rows_amount)
 {
-  float availableHeight = height - (padding * (rows_amount - 1));
-  float curY = y;
-  float takenHeight = 0;
+  int availableHeight = height - (padding * (rows_amount - 1));
+  int curY = y;
+  int takenHeight = 0;
 
   for (int i = 0; i < rows_amount; i++)
   {
-    float rowLength = availableHeight * rows[i].Height / 100;
+    int rowLength = availableHeight * rows[i].Height / 100;
 
-    float availableWidth = width - (padding * (rows[i].ColumnCount - 1));
-    float curX = x;
-    float takenWidth = 0;
+    int availableWidth = width - (padding * (rows[i].ColumnCount - 1));
+    int curX = x;
+    int takenWidth = 0;
 
     for (int j = 0; j < rows[i].ColumnCount; j++)
     {
-      float colLength = availableWidth * rows[i].Columns[j].Width / 100;
+      int colLength = availableWidth * rows[i].Columns[j].Width / 100;
       Rectangle rect = (Rectangle){curX, curY, colLength, rowLength};
 
       DrawRectangleRec(rect, rows[i].Columns[j].Color);
@@ -238,7 +238,7 @@ static void DrawWheel(float angle,
     DrawCircleSector(center, radius, startAngle, endAngle, 0,
                      Colors[slices[i].Color]);
 
-    float midAngle = ((startAngle + endAngle) / 2) - FontSize / 8;
+    float midAngle = ((startAngle + endAngle) / 2) - (float)FontSize / 8;
     Vector2 labelPosition = {
         center.x + (radius / 2) * cosf(midAngle * DEG2RAD),
         center.y + (radius / 2) * sinf(midAngle * DEG2RAD)};
@@ -269,11 +269,11 @@ static void DrawWheel(float angle,
                (Vector2){center.x + 15, paddle_bottom}, RED);
 }
 
-static void DrawCross(float x,
-                      float y,
+static void DrawCross(int x,
+                      int y,
                       float angle,
                       float length,
-                      float thickness,
+                      int thickness,
                       Color color)
 {
   float radians = DEG2RAD * angle;
@@ -292,151 +292,111 @@ static void DrawCross(float x,
   DrawLineEx(startVertical, endVertical, thickness, color);
 }
 
-static void DrawButton(
-  float x,
-  float y,
-  float width,
-  float height,
-  char* text,
-  int fontSize,
-  Color textColor,
-  Color backgroundColor,
-  Color pressedColor,
-  Color hoveredColor,
-  Color borderColor,
-  int borderThickness,
-  ShadowStyle shadowStyle,
-  void (*callback)(int buttonRow, int buttonColumn, void* callbackArgs),
-  int buttonRow,
-  int buttonColumn,
-  void* callbackArgs
-)
+static void DrawButton(int x,
+                       int y,
+                       int width,
+                       int height,
+                       char* text,
+                       int fontSize,
+                       Color textColor,
+                       Color backgroundColor,
+                       Color pressedColor,
+                       Color hoveredColor,
+                       Color borderColor,
+                       int borderThickness,
+                       ShadowStyle shadowStyle,
+                       void (*callback)(int buttonRow,
+                                        int buttonColumn,
+                                        void* callbackArgs),
+                       int buttonRow,
+                       int buttonColumn,
+                       void* callbackArgs)
 {
-    if (
-        IsMouseButtonPressed(MOUSE_BUTTON_LEFT)
-        && IsPointInsideRect(MouseX, MouseY, x, y, width, height)
-    )
+  if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
+      IsPointInsideRect(MouseX, MouseY, x, y, width, height))
+  {
+    if (callback != NULL)
     {
-        if (callback != NULL)
-        {
-            callback(buttonRow, buttonColumn, callbackArgs);
-        }
-        else
-        {
-            LogAppend("The '%s' button does not have a command defined!\n", text);
-        }
-
-        ButtonPressedTime = 0;
-    }
-    else if (
-        IsMouseButtonDown(MOUSE_BUTTON_LEFT)
-        && IsPointInsideRect(
-            MousePressedX,
-            MousePressedY,
-            x,
-            y,
-            width,
-            height
-        )
-    )
-    {
-        if (shadowStyle.Distance > 0)
-        {
-            x += shadowStyle.Distance;
-            y += shadowStyle.Distance;
-        }
-
-        DrawTextBox(
-            x,
-            y,
-            width,
-            height,
-            text,
-            fontSize,
-            textColor,
-            pressedColor,
-            borderColor,
-            borderThickness,
-            shadowStyle
-        );
-
-        if (ButtonPressedTime >= KeyRepeatInterval)
-        {
-          if (callback != NULL)
-          {
-              callback(buttonRow, buttonColumn, callbackArgs);
-          }
-          else
-          {
-              LogAppend("The '%s' button does not have a command defined!\n", text);
-          }
-        }
-
-        ButtonPressedTime += GetFrameTime();
+      callback(buttonRow, buttonColumn, callbackArgs);
     }
     else
     {
-        DrawTextBox(
-            x,
-            y,
-            width,
-            height,
-            text,
-            fontSize,
-            textColor,
-            IsPointInsideRect(MouseX, MouseY, x, y, width, height)
-                ? hoveredColor
-                : backgroundColor,
-            borderColor,
-            borderThickness,
-            shadowStyle
-        );
+      LogAppend("The '%s' button does not have a command defined!\n", text);
     }
+
+    ButtonPressedTime = 0;
+  }
+  else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) &&
+           IsPointInsideRect(MousePressedX, MousePressedY, x, y, width, height))
+  {
+    if (shadowStyle.Distance > 0)
+    {
+      x += shadowStyle.Distance;
+      y += shadowStyle.Distance;
+    }
+
+    DrawTextBox(x, y, width, height, text, fontSize, textColor, pressedColor,
+                borderColor, borderThickness, shadowStyle);
+
+    if (ButtonPressedTime >= KeyRepeatInterval)
+    {
+      if (callback != NULL)
+      {
+        callback(buttonRow, buttonColumn, callbackArgs);
+      }
+      else
+      {
+        LogAppend("The '%s' button does not have a command defined!\n", text);
+      }
+    }
+
+    ButtonPressedTime += GetFrameTime();
+  }
+  else
+  {
+    DrawTextBox(x, y, width, height, text, fontSize, textColor,
+                IsPointInsideRect(MouseX, MouseY, x, y, width, height)
+                    ? hoveredColor
+                    : backgroundColor,
+                borderColor, borderThickness, shadowStyle);
+  }
 }
 
-static void DrawButtonGrid(float x,
-                            float y,
-                            float width,
-                            float height,
-                            float padding,
-                            const ButtonRow* rows,
-                            int rows_amount)
+static void DrawButtonGrid(int x,
+                           int y,
+                           int width,
+                           int height,
+                           int padding,
+                           const ButtonRow* rows,
+                           int rows_amount)
 {
   LogIfTrue(x < 0 || y < 0 || width <= 0 || height <= 0 ||
                 x + width > ScreenWidth || y + height > ScreenHeight,
             "ERROR: Button grid is outside of the screen!\n");
 
-  float availableHeight = height - (padding * (rows_amount - 1));
-  float curY = y;
-  float takenHeight = 0;
+  int availableHeight = height - (padding * (rows_amount - 1));
+  int curY = y;
+  int takenHeight = 0;
 
   for (int i = 0; i < rows_amount; i++)
   {
-    float rowLength = availableHeight * rows[i].HeightPercentage / 100;
+    int rowLength = availableHeight * rows[i].HeightPercentage / 100;
 
-    float availableWidth = width - (padding * (rows[i].ColumnAmount - 1));
-    float curX = x;
-    float takenWidth = 0;
+    int availableWidth = width - (padding * (rows[i].ColumnAmount - 1));
+    int curX = x;
+    int takenWidth = 0;
 
     for (int j = 0; j < rows[i].ColumnAmount; j++)
     {
-      float colLength =
-          availableWidth * rows[i].Columns[j].WidthPercentage / 100;
+      int colLength = availableWidth * rows[i].Columns[j].WidthPercentage / 100;
 
-      DrawButton(curX, curY, colLength, rowLength, rows[i].Columns[j].Text,
-                  rows[i].Columns[j].FontSize,
-                  rows[i].Columns[j].TextColor,
-                  rows[i].Columns[j].BackgroundColor,
-                  rows[i].Columns[j].PressedColor,
-                  rows[i].Columns[j].HoveredColor,
-                  rows[i].Columns[j].BorderColor,
-                  rows[i].Columns[j].BorderThickness,
-                  rows[i].Columns[j].ShadowStyle,
-                  rows[i].Columns[j].Callback,
-                  i,
-                  j,
-                  rows[i].Columns[j].CallbackArgs
-                 );
+      DrawButton(
+          curX, curY, colLength, rowLength, rows[i].Columns[j].Text,
+          rows[i].Columns[j].FontSize, rows[i].Columns[j].TextColor,
+          rows[i].Columns[j].BackgroundColor, rows[i].Columns[j].PressedColor,
+          rows[i].Columns[j].HoveredColor, rows[i].Columns[j].BorderColor,
+          rows[i].Columns[j].BorderThickness, rows[i].Columns[j].ShadowStyle,
+          rows[i].Columns[j].Callback, i, j, rows[i].Columns[j].CallbackArgs);
 
       curX += colLength + padding;
       takenWidth += colLength;

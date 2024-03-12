@@ -76,9 +76,9 @@ int main()
       BeginDrawing();
       ClearBackground(BACKGROUND_COLOR);
 
-      float square_button_size =
+      int square_button_size =
           (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) / 8;
-      float square_button_padding = ScreenWidth / 250;
+      int square_button_padding = ScreenWidth / 250;
       Rectangle corner_button_rect = {
           ScreenWidth - square_button_size - square_button_padding,
           square_button_padding, square_button_size, square_button_size};
@@ -87,7 +87,7 @@ int main()
       {
         // Draw the wheel
         {
-          float wheel_radius =
+          int wheel_radius =
               (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) / 2 -
               ScreenPadding;
 
@@ -130,32 +130,32 @@ int main()
 
           // Draw a menu icon
           Row rows[] = {
-              {33.33f, 1,
+              {33, 1,
                (Column[]){(Column){.Width = 100, .Color = FOREGROUND_COLOR}}},
-              {33.33f, 1,
+              {33, 1,
                (Column[]){(Column){.Width = 100, .Color = FOREGROUND_COLOR}}},
-              {33.33f, 1,
+              {33, 1,
                (Column[]){(Column){.Width = 100, .Color = FOREGROUND_COLOR}}},
           };
 
-          DrawRectangleGrid(corner_button_rect.x + (square_button_size / 8),
-                            corner_button_rect.y + (square_button_size / 8),
-                            square_button_size * 3 / 4,
-                            square_button_size * 3 / 4, square_button_padding,
-                            rows, ARRAY_LENGTH(rows));
+          DrawRectangleGrid(
+              corner_button_rect.x + ((float)square_button_size / 8),
+              corner_button_rect.y + ((float)square_button_size / 8),
+              square_button_size * 3 / 4, square_button_size * 3 / 4,
+              square_button_padding, rows, ARRAY_LENGTH(rows));
         }
       }
       else
       {
         // draw the slices menu
         {
-          float side_padding =
+          int side_padding =
               (ScreenWidth < ScreenHeight ? 0 : ScreenPadding * 8);
-          float slice_item_height =
+          int slice_item_height =
               (ScreenWidth < ScreenHeight ? ScreenHeight / 6
                                           : ScreenHeight / 3);
-          float slice_item_width = ScreenWidth - side_padding * 2;
-          float slice_item_border = ScreenWidth / 500;
+          int slice_item_width = ScreenWidth - side_padding * 2;
+          int slice_item_border = ScreenWidth / 500;
 
           // draw a button to add a slice
           if (SlicesCount == 0 || SlicesCount < COLORS_AMOUNT)
@@ -198,7 +198,7 @@ int main()
             // plus sign
             DrawCross(add_button.x + add_button.width / 2,
                       add_button.y + add_button.height / 2, 0,
-                      slice_item_height / 2, slice_item_height / 10,
+                      (float)slice_item_height / 2, slice_item_height / 10,
                       FOREGROUND_COLOR);
           }
 
@@ -262,7 +262,6 @@ int main()
             // TODO(LucasTA):
             //   make android keyboard
             //   separate into function DrawTextField()
-            //   make color picker buttons bigger on android
             // draw editable text box
             {
               Vector2 item_name_text_size = MeasureTextEx(
@@ -405,7 +404,7 @@ int main()
               // button outline
               DrawRectangleLinesEx(trash_button, slice_item_border, RED);
 
-              float trash_button_lid_handle_size = square_button_padding * 4;
+              int trash_button_lid_handle_size = square_button_padding * 4;
 
               // draw a trash icon
               {
@@ -413,7 +412,8 @@ int main()
                 DrawRectangleRounded(
                     (Rectangle){trash_button.x + trash_button.width / 4,
                                 trash_button.y + trash_button.height / 4,
-                                square_button_size / 2, square_button_size / 2},
+                                (float)square_button_size / 2,
+                                (float)square_button_size / 2},
                     ROUNDNESS, 0, RED);
 
                 // trash can bucket shape
@@ -425,18 +425,18 @@ int main()
                     square_button_size / 2 - square_button_padding * 2,
                     square_button_size / 2 - square_button_padding * 2, 3,
                     (Row[]){100, 3,
-                            (Column[]){(Column){.Width = 33.33f,
+                            (Column[]){(Column){.Width = 33,
                                                 .Color = RED_HIGHLIGHT_COLOR},
-                                       (Column){.Width = 33.33f,
+                                       (Column){.Width = 33,
                                                 .Color = RED_HIGHLIGHT_COLOR},
-                                       (Column){.Width = 33.33f,
+                                       (Column){.Width = 33,
                                                 .Color = RED_HIGHLIGHT_COLOR}}},
                     1);
 
                 // trash can handle
                 DrawRectangleRec(
                     (Rectangle){trash_button.x + trash_button.width / 2 -
-                                    trash_button_lid_handle_size / 2,
+                                    (float)trash_button_lid_handle_size / 2,
                                 trash_button.y + trash_button.height / 6,
                                 trash_button_lid_handle_size,
                                 trash_button_lid_handle_size},
@@ -445,11 +445,11 @@ int main()
                 // trash can lid
                 DrawRectangleRec(
                     (Rectangle){trash_button.x + trash_button.width / 4 -
-                                    trash_button_lid_handle_size / 4,
+                                    (float)trash_button_lid_handle_size / 4,
                                 trash_button.y + trash_button.height / 4,
-                                square_button_size / 2 +
-                                    trash_button_lid_handle_size / 2,
-                                square_button_size / 6},
+                                (float)square_button_size / 2 +
+                                    (float)trash_button_lid_handle_size / 2,
+                                (float)square_button_size / 6},
                     RED);
               }
             }
@@ -494,8 +494,8 @@ int main()
         TypingIndex = -1;
       }
 
-      LogAppend("INFO(Mouse): X %.0f Y %.0f PressedX %.0f PressedY %.0f \n",
-                MouseX, MouseY, MousePressedX, MousePressedY);
+      LogAppend("INFO(Mouse): X %d Y %d PressedX %d PressedY %d \n", MouseX,
+                MouseY, MousePressedX, MousePressedY);
       LogDraw();
       LogSet("");
 
