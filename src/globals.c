@@ -35,6 +35,7 @@ typedef struct
 static int ScreenWidth = 0;
 static int ScreenHeight = 0;
 static int ScreenPadding = 0;
+static int Padding = 0;
 static int MouseX = 0;
 static int MouseY = 0;
 static int MousePressedX = 0;

@@ -53,6 +53,7 @@ int main()
       ScreenPadding =
           (ScreenWidth < ScreenHeight ? ScreenWidth / 16 : ScreenHeight / 32);
       FontSize = (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) / 25;
+      Padding = ScreenWidth / 250;
     }
 
     // update mouse and touch information
@@ -78,10 +79,9 @@ int main()
 
       int square_button_size =
           (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) / 8;
-      int square_button_padding = ScreenWidth / 250;
       Rectangle corner_button_rect = {
-          ScreenWidth - square_button_size - square_button_padding,
-          square_button_padding, square_button_size, square_button_size};
+          ScreenWidth - square_button_size - Padding,
+          Padding, square_button_size, square_button_size};
 
       if (!MenuOpened)
       {
@@ -125,7 +125,7 @@ int main()
           }
 
           // button outline
-          DrawRectangleLinesEx(corner_button_rect, square_button_padding,
+          DrawRectangleLinesEx(corner_button_rect, Padding,
                                FOREGROUND_COLOR);
 
           // Draw a menu icon
@@ -142,7 +142,7 @@ int main()
               corner_button_rect.x + ((float)square_button_size / 8),
               corner_button_rect.y + ((float)square_button_size / 8),
               square_button_size * 3 / 4, square_button_size * 3 / 4,
-              square_button_padding, rows, ARRAY_LENGTH(rows));
+              Padding, rows, ARRAY_LENGTH(rows));
         }
       }
       else
@@ -163,7 +163,7 @@ int main()
             Rectangle add_button = {
                 side_padding,
                 (ScreenWidth < ScreenHeight
-                     ? square_button_size + square_button_padding
+                     ? square_button_size + Padding
                      : 0) +
                     slice_item_height * SlicesCount,
                 slice_item_width, slice_item_height};
@@ -207,7 +207,7 @@ int main()
             Rectangle item_rect = {
                 side_padding,
                 (ScreenWidth < ScreenHeight
-                     ? square_button_size + square_button_padding
+                     ? square_button_size + Padding
                      : 0) +
                     i * slice_item_height,
                 slice_item_width, slice_item_height};
@@ -224,15 +224,15 @@ int main()
                   {PALETTE_ROW_PERCENTAGE, PALETTE_COL_AMOUNT,
                    (Button[PALETTE_COL_AMOUNT]){0}},
               };
-              int palette_x = side_padding + square_button_padding;
+              int palette_x = side_padding + Padding;
               int palette_y = i * slice_item_height + slice_item_height / 2 -
-                              square_button_padding +
+                              Padding +
                               (ScreenWidth < ScreenHeight
-                                   ? square_button_size + square_button_padding
+                                   ? square_button_size + Padding
                                    : 0);
               int palette_height = slice_item_height / 2;
               int palette_width =
-                  slice_item_width - square_button_padding * 2 -
+                  slice_item_width - Padding * 2 -
                   (ScreenWidth < ScreenHeight ? square_button_size : 0);
 
               for (int c = 0; c < COLORS_AMOUNT; c++)
@@ -248,14 +248,14 @@ int main()
                              Colors[c],
                              c == Slices[i].Color ? FOREGROUND_COLOR
                                                   : HIGHLIGHT_COLOR,
-                             square_button_padding,
+                             Padding,
                              (ShadowStyle){0},
                              ColorPick,
                              &(ColorPickArgs){i}};
               }
 
               DrawButtonGrid(palette_x, palette_y, palette_width,
-                             palette_height, square_button_padding, palette,
+                             palette_height, Padding, palette,
                              PALETTE_ROW_AMOUNT);
             }
 
@@ -268,13 +268,13 @@ int main()
                   Fonte, Slices[i].Name, FontSize * 2, TEXT_SPACING);
 
               Rectangle item_name_rect = {
-                  side_padding + square_button_padding,
+                  side_padding + Padding,
                   (ScreenWidth < ScreenHeight
-                       ? square_button_size + square_button_padding
+                       ? square_button_size + Padding
                        : 0) +
-                      i * slice_item_height + square_button_padding,
+                      i * slice_item_height + Padding,
                   fmax(item_name_text_size.x, square_button_size) +
-                      square_button_padding,
+                      Padding,
                   item_name_text_size.y};
 
               ShadowStyle item_name_shadow = {0};
@@ -370,11 +370,11 @@ int main()
             {
               Rectangle trash_button = {
                   ScreenWidth - side_padding - square_button_size -
-                      square_button_padding,
+                      Padding,
                   (ScreenWidth < ScreenHeight
-                       ? square_button_size + square_button_padding
+                       ? square_button_size + Padding
                        : 0) +
-                      i * slice_item_height + square_button_padding,
+                      i * slice_item_height + Padding,
                   square_button_size, square_button_size};
 
               if (IsPointInsideRect(MouseX, MouseY, trash_button.x,
@@ -404,7 +404,7 @@ int main()
               // button outline
               DrawRectangleLinesEx(trash_button, slice_item_border, RED);
 
-              int trash_button_lid_handle_size = square_button_padding * 4;
+              int trash_button_lid_handle_size = Padding * 4;
 
               // draw a trash icon
               {
@@ -419,11 +419,11 @@ int main()
                 // trash can bucket shape
                 DrawRectangleGrid(
                     trash_button.x + trash_button.width / 4 +
-                        square_button_padding,
+                        Padding,
                     trash_button.y + trash_button.height / 4 +
-                        square_button_padding,
-                    square_button_size / 2 - square_button_padding * 2,
-                    square_button_size / 2 - square_button_padding * 2, 3,
+                        Padding,
+                    square_button_size / 2 - Padding * 2,
+                    square_button_size / 2 - Padding * 2, 3,
                     (Row[]){100, 3,
                             (Column[]){(Column){.Width = 33,
                                                 .Color = RED_HIGHLIGHT_COLOR},
@@ -480,7 +480,7 @@ int main()
           }
 
           // button outline
-          DrawRectangleLinesEx(corner_button_rect, square_button_padding, RED);
+          DrawRectangleLinesEx(corner_button_rect, Padding, RED);
 
           // x sign
           DrawCross(corner_button_rect.x + corner_button_rect.width / 2,
