@@ -15,7 +15,7 @@ void ColorPick(int buttonRow, int buttonColumn, void* _args)
 {
   ColorPickArgs* args = (ColorPickArgs*)_args;
   Slices[args->SliceIndex].Color =
-      buttonRow * (COLORS_AMOUNT / PALLETE_ROW_AMOUNT) + buttonColumn;
+      buttonRow * (COLORS_AMOUNT / PALETTE_ROW_AMOUNT) + buttonColumn;
 }
 
 int main()
@@ -216,30 +216,30 @@ int main()
             DrawRectangleLinesEx(item_rect, slice_item_border,
                                  FOREGROUND_COLOR);
 
-            // draw color pallete
+            // draw color palette
             {
-              ButtonRow pallete[PALLETE_ROW_AMOUNT] = {
-                  {PALLETE_ROW_PERCENTAGE, PALLETE_COL_AMOUNT,
-                   (Button[PALLETE_COL_AMOUNT]){0}},
-                  {PALLETE_ROW_PERCENTAGE, PALLETE_COL_AMOUNT,
-                   (Button[PALLETE_COL_AMOUNT]){0}},
+              ButtonRow palette[PALETTE_ROW_AMOUNT] = {
+                  {PALETTE_ROW_PERCENTAGE, PALETTE_COL_AMOUNT,
+                   (Button[PALETTE_COL_AMOUNT]){0}},
+                  {PALETTE_ROW_PERCENTAGE, PALETTE_COL_AMOUNT,
+                   (Button[PALETTE_COL_AMOUNT]){0}},
               };
-              int pallete_x = side_padding + square_button_padding;
-              int pallete_y = i * slice_item_height + slice_item_height / 2 -
+              int palette_x = side_padding + square_button_padding;
+              int palette_y = i * slice_item_height + slice_item_height / 2 -
                               square_button_padding +
                               (ScreenWidth < ScreenHeight
                                    ? square_button_size + square_button_padding
                                    : 0);
-              int pallete_height = slice_item_height / 2;
-              int pallete_width =
+              int palette_height = slice_item_height / 2;
+              int palette_width =
                   slice_item_width - square_button_padding * 2 -
                   (ScreenWidth < ScreenHeight ? square_button_size : 0);
 
               for (int c = 0; c < COLORS_AMOUNT; c++)
               {
-                pallete[c / (COLORS_AMOUNT / PALLETE_ROW_AMOUNT)]
-                    .Columns[c % (COLORS_AMOUNT / PALLETE_ROW_AMOUNT)] =
-                    (Button){PALLETE_COL_PERCENTAGE,
+                palette[c / (COLORS_AMOUNT / PALETTE_ROW_AMOUNT)]
+                    .Columns[c % (COLORS_AMOUNT / PALETTE_ROW_AMOUNT)] =
+                    (Button){PALETTE_COL_PERCENTAGE,
                              "",
                              FontSize,
                              FOREGROUND_COLOR,
@@ -254,9 +254,9 @@ int main()
                              &(ColorPickArgs){i}};
               }
 
-              DrawButtonGrid(pallete_x, pallete_y, pallete_width,
-                             pallete_height, square_button_padding, pallete,
-                             PALLETE_ROW_AMOUNT);
+              DrawButtonGrid(palette_x, palette_y, palette_width,
+                             palette_height, square_button_padding, palette,
+                             PALETTE_ROW_AMOUNT);
             }
 
             // TODO(LucasTA):
