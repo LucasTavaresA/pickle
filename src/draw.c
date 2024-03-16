@@ -144,6 +144,11 @@ static void DrawTextBox(int x,
                    "ERROR: The text at the %d,%d text box is not visible!\n", x,
                    y);
 
+  if (fontSize == 0)
+  {
+    fontSize = FontSize;
+  }
+
   Vector2 textSize = MeasureTextEx(Fonte, text, fontSize, TEXT_SPACING);
 
   LogIfTrue(textSize.x > width || textSize.y > height,
@@ -165,6 +170,10 @@ static void DrawTextBox(int x,
   if (borderThickness > 0)
   {
     DrawRectangleLinesEx(rec, borderThickness, borderColor);
+  }
+  else if (borderThickness < 0)
+  {
+    DrawRectangleLinesEx(rec, Padding, borderColor);
   }
 
   DrawTextEx(Fonte, text, (Vector2){textX, textY}, fontSize, TEXT_SPACING,
@@ -202,6 +211,10 @@ static void DrawRectangleGrid(int x,
       {
         DrawRectangleLinesEx(rect, rows[i].Columns[j].BorderThickness,
                              rows[i].Columns[j].BorderColor);
+      }
+      else if (rows[i].Columns[j].BorderThickness < 0)
+      {
+        DrawRectangleLinesEx(rect, Padding, rows[i].Columns[j].BorderColor);
       }
 
       curX += colLength + padding;
