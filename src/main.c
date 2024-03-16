@@ -80,8 +80,8 @@ int main()
       int square_button_size =
           (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) / 8;
       Rectangle corner_button_rect = {
-          ScreenWidth - square_button_size - Padding,
-          Padding, square_button_size, square_button_size};
+          ScreenWidth - square_button_size - Padding, Padding,
+          square_button_size, square_button_size};
 
       if (!MenuOpened)
       {
@@ -125,24 +125,20 @@ int main()
           }
 
           // button outline
-          DrawRectangleLinesEx(corner_button_rect, Padding,
-                               FOREGROUND_COLOR);
+          DrawRectangleLinesEx(corner_button_rect, Padding, FOREGROUND_COLOR);
 
           // Draw a menu icon
           Row rows[] = {
-              {33, 1,
-               (Column[]){(Column){.Width = 100, .Color = FOREGROUND_COLOR}}},
-              {33, 1,
-               (Column[]){(Column){.Width = 100, .Color = FOREGROUND_COLOR}}},
-              {33, 1,
-               (Column[]){(Column){.Width = 100, .Color = FOREGROUND_COLOR}}},
+              {33, 1, (Column[]){(Column){100, FOREGROUND_COLOR}}},
+              {33, 1, (Column[]){(Column){100, FOREGROUND_COLOR}}},
+              {33, 1, (Column[]){(Column){100, FOREGROUND_COLOR}}},
           };
 
           DrawRectangleGrid(
               corner_button_rect.x + ((float)square_button_size / 8),
               corner_button_rect.y + ((float)square_button_size / 8),
-              square_button_size * 3 / 4, square_button_size * 3 / 4,
-              Padding, rows, ARRAY_LENGTH(rows));
+              square_button_size * 3 / 4, square_button_size * 3 / 4, Padding,
+              rows, ARRAY_LENGTH(rows));
         }
       }
       else
@@ -162,9 +158,8 @@ int main()
           {
             Rectangle add_button = {
                 side_padding,
-                (ScreenWidth < ScreenHeight
-                     ? square_button_size + Padding
-                     : 0) +
+                (ScreenWidth < ScreenHeight ? square_button_size + Padding
+                                            : 0) +
                     slice_item_height * SlicesCount,
                 slice_item_width, slice_item_height};
 
@@ -204,11 +199,13 @@ int main()
 
           for (int i = 0; i < SlicesCount; i++)
           {
+            Vector2 item_name_text_size = MeasureTextEx(
+                Fonte, Slices[i].Name, FontSize * 2, TEXT_SPACING);
+
             Rectangle item_rect = {
                 side_padding,
-                (ScreenWidth < ScreenHeight
-                     ? square_button_size + Padding
-                     : 0) +
+                (ScreenWidth < ScreenHeight ? square_button_size + Padding
+                                            : 0) +
                     i * slice_item_height,
                 slice_item_width, slice_item_height};
 
@@ -225,15 +222,14 @@ int main()
                    (Button[PALETTE_COL_AMOUNT]){0}},
               };
               int palette_x = side_padding + Padding;
-              int palette_y = i * slice_item_height + slice_item_height / 2 -
-                              Padding +
-                              (ScreenWidth < ScreenHeight
-                                   ? square_button_size + Padding
-                                   : 0);
-              int palette_height = slice_item_height / 2;
+              int palette_y =
+                  i * slice_item_height + item_name_text_size.y + Padding * 2 +
+                  (ScreenWidth < ScreenHeight ? square_button_size + Padding
+                                              : 0);
+              int palette_height =
+                  slice_item_height - item_name_text_size.y - Padding * 4;
               int palette_width =
-                  slice_item_width - Padding * 2 -
-                  (ScreenWidth < ScreenHeight ? square_button_size : 0);
+                  slice_item_width - Padding - square_button_size;
 
               for (int c = 0; c < COLORS_AMOUNT; c++)
               {
@@ -264,17 +260,12 @@ int main()
             //   separate into function DrawTextField()
             // draw editable text box
             {
-              Vector2 item_name_text_size = MeasureTextEx(
-                  Fonte, Slices[i].Name, FontSize * 2, TEXT_SPACING);
-
               Rectangle item_name_rect = {
                   side_padding + Padding,
-                  (ScreenWidth < ScreenHeight
-                       ? square_button_size + Padding
-                       : 0) +
+                  (ScreenWidth < ScreenHeight ? square_button_size + Padding
+                                              : 0) +
                       i * slice_item_height + Padding,
-                  fmax(item_name_text_size.x, square_button_size) +
-                      Padding,
+                  fmax(item_name_text_size.x, square_button_size) + Padding,
                   item_name_text_size.y};
 
               ShadowStyle item_name_shadow = {0};
@@ -369,11 +360,9 @@ int main()
             // draw a trash button to delete slices
             {
               Rectangle trash_button = {
-                  ScreenWidth - side_padding - square_button_size -
-                      Padding,
-                  (ScreenWidth < ScreenHeight
-                       ? square_button_size + Padding
-                       : 0) +
+                  ScreenWidth - side_padding - square_button_size - Padding,
+                  (ScreenWidth < ScreenHeight ? square_button_size + Padding
+                                              : 0) +
                       i * slice_item_height + Padding,
                   square_button_size, square_button_size};
 
@@ -418,19 +407,14 @@ int main()
 
                 // trash can bucket shape
                 DrawRectangleGrid(
-                    trash_button.x + trash_button.width / 4 +
-                        Padding,
-                    trash_button.y + trash_button.height / 4 +
-                        Padding,
+                    trash_button.x + trash_button.width / 4 + Padding,
+                    trash_button.y + trash_button.height / 4 + Padding,
                     square_button_size / 2 - Padding * 2,
                     square_button_size / 2 - Padding * 2, 3,
                     (Row[]){100, 3,
-                            (Column[]){(Column){.Width = 33,
-                                                .Color = RED_HIGHLIGHT_COLOR},
-                                       (Column){.Width = 33,
-                                                .Color = RED_HIGHLIGHT_COLOR},
-                                       (Column){.Width = 33,
-                                                .Color = RED_HIGHLIGHT_COLOR}}},
+                            (Column[]){(Column){33, RED_HIGHLIGHT_COLOR},
+                                       (Column){33, RED_HIGHLIGHT_COLOR},
+                                       (Column){33, RED_HIGHLIGHT_COLOR}}},
                     1);
 
                 // trash can handle
