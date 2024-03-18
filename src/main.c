@@ -1,10 +1,9 @@
-#include <ctype.h>
-
 #include "../raylib/src/raylib.h"
 
 #include "draw.c"
 #include "globals.c"
 #include "log.c"
+#include "char.c"
 
 typedef struct
 {
