@@ -10,16 +10,12 @@
 #define INITIAL_REPEAT_INTERVAL 0.3f  // Initial repeat interval in seconds
 #define MIN_REPEAT_INTERVAL 0.03f     // Minimum repeat interval in seconds
 #define FOREGROUND_COLOR BLACK
-#define BACKGROUND_COLOR WHITE
+#define BACKGROUND_COLOR LIGHTGRAY
 #define PALETTE_ROW_AMOUNT 2
 #define PALETTE_COL_AMOUNT (COLORS_AMOUNT / PALETTE_ROW_AMOUNT)
 #define PALETTE_ROW_PERCENTAGE 100 / (PALETTE_ROW_AMOUNT)
 #define PALETTE_COL_PERCENTAGE 100 / (PALETTE_COL_AMOUNT)
-#define HIGHLIGHT_COLOR \
-  (Color)               \
-  {                     \
-    180, 180, 180, 255  \
-  }
+#define HIGHLIGHT_COLOR GRAY
 #define RED_HIGHLIGHT_COLOR \
   (Color)                   \
   {                         \
