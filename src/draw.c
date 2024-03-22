@@ -50,6 +50,7 @@ typedef struct
   int WidthPercentage;
   char* Text;
   int FontSize;
+  bool RepeatPresses;
   Color TextColor;
   Color BackgroundColor;
   Color PressedColor;
@@ -305,12 +306,37 @@ static void DrawCross(int x,
   DrawLineEx(startVertical, endVertical, thickness, color);
 }
 
+#define HandleKeypress                                                       \
+  if (shadowStyle.Distance > 0)                                              \
+  {                                                                          \
+    x += shadowStyle.Distance;                                               \
+    y += shadowStyle.Distance;                                               \
+  }                                                                          \
+                                                                             \
+  DrawTextBox(x, y, width, height, text, fontSize, textColor, pressedColor,  \
+              borderColor, borderThickness, shadowStyle);                    \
+                                                                             \
+  if (repeatPresses == true && ButtonPressedTime >= KeyRepeatInterval)       \
+  {                                                                          \
+    if (callback != NULL)                                                    \
+    {                                                                        \
+      callback(buttonRow, buttonColumn, callbackArgs);                       \
+    }                                                                        \
+    else                                                                     \
+    {                                                                        \
+      LogAppend("The '%s' button does not have a command defined!\n", text); \
+    }                                                                        \
+  }                                                                          \
+                                                                             \
+  ButtonPressedTime += GetFrameTime();
+
 static void DrawButton(int x,
                        int y,
                        int width,
                        int height,
                        char* text,
                        int fontSize,
+                       bool repeatPresses,
                        Color textColor,
                        Color backgroundColor,
                        Color pressedColor,
@@ -325,9 +351,16 @@ static void DrawButton(int x,
                        int buttonColumn,
                        void* callbackArgs)
 {
-  if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
-      IsPointInsideRect(MouseX, MouseY, x, y, width, height))
+  Rectangle rect = {x, y, width, height};
+
+  if (!ButtonWasPressed && IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
+      IsPointInsideRect(MouseX, MouseY, rect.x, rect.y, rect.width,
+                        rect.height) &&
+      IsPointInsideRect(MousePressedX, MousePressedY, rect.x, rect.y,
+                        rect.width, rect.height))
   {
+    ButtonWasPressed = true;
+
     if (callback != NULL)
     {
       callback(buttonRow, buttonColumn, callbackArgs);
@@ -339,41 +372,60 @@ static void DrawButton(int x,
 
     ButtonPressedTime = 0;
   }
-  else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) &&
-           IsPointInsideRect(MousePressedX, MousePressedY, x, y, width, height))
+  else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
   {
-    if (shadowStyle.Distance > 0)
+    if (IsPointInsideRect(MouseX, MouseY, rect.x, rect.y, rect.width,
+                          rect.height))
     {
-      x += shadowStyle.Distance;
-      y += shadowStyle.Distance;
-    }
-
-    DrawTextBox(x, y, width, height, text, fontSize, textColor, pressedColor,
-                borderColor, borderThickness, shadowStyle);
-
-    if (ButtonPressedTime >= KeyRepeatInterval)
-    {
-      if (callback != NULL)
+      if (IsPointInsideRect(MousePressedX, MousePressedY, rect.x, rect.y,
+                            rect.width, rect.height) &&
+          !ButtonWasPressed)
       {
-        callback(buttonRow, buttonColumn, callbackArgs);
+        ButtonWasPressed = true;
+        HandleKeypress;
       }
       else
       {
-        LogAppend("The '%s' button does not have a command defined!\n", text);
+        DrawTextBox(x, y, width, height, text, fontSize, textColor,
+                    IsCursorOnScreen() || TouchCount > 0 ? hoveredColor
+                                                         : backgroundColor,
+                    borderColor, borderThickness, shadowStyle);
       }
     }
-
-    ButtonPressedTime += GetFrameTime();
+    else
+    {
+      if (IsPointInsideRect(MousePressedX, MousePressedY, rect.x, rect.y,
+                            rect.width, rect.height) &&
+          !ButtonWasPressed)
+      {
+        ButtonWasPressed = true;
+        HandleKeypress;
+      }
+      else
+      {
+        DrawTextBox(x, y, width, height, text, fontSize, textColor,
+                    backgroundColor, borderColor, borderThickness, shadowStyle);
+      }
+    }
   }
   else
   {
-    DrawTextBox(x, y, width, height, text, fontSize, textColor,
-                IsPointInsideRect(MouseX, MouseY, x, y, width, height)
-                    ? hoveredColor
-                    : backgroundColor,
-                borderColor, borderThickness, shadowStyle);
+    if (IsPointInsideRect(MouseX, MouseY, rect.x, rect.y, rect.width,
+                          rect.height))
+    {
+      DrawTextBox(
+          x, y, width, height, text, fontSize, textColor,
+          IsCursorOnScreen() || TouchCount > 0 ? hoveredColor : backgroundColor,
+          borderColor, borderThickness, shadowStyle);
+    }
+    else
+    {
+      DrawTextBox(x, y, width, height, text, fontSize, textColor,
+                  backgroundColor, borderColor, borderThickness, shadowStyle);
+    }
   }
 }
+#undef HandleKeypress
 
 static void DrawButtonGrid(int x,
                            int y,
@@ -405,11 +457,12 @@ static void DrawButtonGrid(int x,
 
       DrawButton(
           curX, curY, colLength, rowLength, rows[i].Columns[j].Text,
-          rows[i].Columns[j].FontSize, rows[i].Columns[j].TextColor,
-          rows[i].Columns[j].BackgroundColor, rows[i].Columns[j].PressedColor,
-          rows[i].Columns[j].HoveredColor, rows[i].Columns[j].BorderColor,
-          rows[i].Columns[j].BorderThickness, rows[i].Columns[j].ShadowStyle,
-          rows[i].Columns[j].Callback, i, j, rows[i].Columns[j].CallbackArgs);
+          rows[i].Columns[j].FontSize, rows[i].Columns[j].RepeatPresses,
+          rows[i].Columns[j].TextColor, rows[i].Columns[j].BackgroundColor,
+          rows[i].Columns[j].PressedColor, rows[i].Columns[j].HoveredColor,
+          rows[i].Columns[j].BorderColor, rows[i].Columns[j].BorderThickness,
+          rows[i].Columns[j].ShadowStyle, rows[i].Columns[j].Callback, i, j,
+          rows[i].Columns[j].CallbackArgs);
 
       curX += colLength + padding;
       takenWidth += colLength;

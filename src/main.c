@@ -5,6 +5,8 @@
 #include "globals.c"
 #include "log.c"
 
+static ShadowStyle NoShadow = {0};
+
 typedef struct
 {
   int SliceIndex;
@@ -17,7 +19,30 @@ static void ColorPickFunc(int buttonRow, int buttonColumn, void* _args)
       buttonRow * (COLORS_AMOUNT / PALETTE_ROW_AMOUNT) + buttonColumn;
 }
 
-static ShadowStyle NoShadow = {0};
+static void AddEntryFunc()
+{
+  Slices[SlicesCount].Name = strdup(DefaultSlices[SlicesCount].Name);
+  Slices[SlicesCount].Color = DefaultSlices[SlicesCount].Color;
+  SlicesCount++;
+}
+
+typedef struct
+{
+  int SliceIndex;
+} RemoveEntryArgs;
+
+static void RemoveEntryFunc(int buttonRow, int buttonColumn, void* _args)
+{
+  RemoveEntryArgs* args = (RemoveEntryArgs*)_args;
+  memmove(&Slices[args->SliceIndex], &Slices[args->SliceIndex + 1],
+          (SlicesCount - args->SliceIndex - 1) * sizeof(Slice));
+  SlicesCount--;
+}
+
+static void ToggleMenuFunc()
+{
+  MenuOpened = !MenuOpened;
+}
 
 int main()
 {
@@ -104,29 +129,11 @@ int main()
 
         // Draw a menu button
         {
-          if (IsPointInsideRect(MouseX, MouseY, cornerButtonRect.x,
-                                cornerButtonRect.y, cornerButtonRect.width,
-                                cornerButtonRect.height))
-          {
-            if (IsCursorOnScreen() || TouchCount > 0)
-            {
-              // button background
-              DrawRectangleRec(cornerButtonRect, HIGHLIGHT_COLOR);
-            }
-
-            if (!ButtonWasPressed && IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
-                IsPointInsideRect(MousePressedX, MousePressedY,
-                                  cornerButtonRect.x, cornerButtonRect.y,
-                                  cornerButtonRect.width,
-                                  cornerButtonRect.height))
-            {
-              ButtonWasPressed = true;
-              MenuOpened = true;
-            }
-          }
-
-          // button outline
-          DrawRectangleLinesEx(cornerButtonRect, Padding, FOREGROUND_COLOR);
+          DrawButton(cornerButtonRect.x, cornerButtonRect.y,
+                     cornerButtonRect.width, cornerButtonRect.height, "",
+                     FontSize, false, FOREGROUND_COLOR, BACKGROUND_COLOR,
+                     PRESSED_COLOR, HOVERED_COLOR, FOREGROUND_COLOR, Padding,
+                     NoShadow, ToggleMenuFunc, 0, 0, 0);
 
           // Draw a menu icon
           Row rows[] = {
@@ -165,33 +172,11 @@ int main()
                     sliceEntryHeight * SlicesCount,
                 sliceEntryWidth, sliceEntryHeight};
 
-            if (IsPointInsideRect(MouseX, MouseY, addButtonRect.x,
-                                  addButtonRect.y, addButtonRect.width,
-                                  addButtonRect.height))
-            {
-              if (IsCursorOnScreen() || TouchCount > 0)
-              {
-                // button background
-                DrawRectangleRec(addButtonRect, HIGHLIGHT_COLOR);
-              }
-
-              if (!ButtonWasPressed &&
-                  IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
-                  IsPointInsideRect(MousePressedX, MousePressedY,
-                                    addButtonRect.x, addButtonRect.y,
-                                    addButtonRect.width, addButtonRect.height))
-              {
-                ButtonWasPressed = true;
-                Slices[SlicesCount].Name =
-                    strdup(DefaultSlices[SlicesCount].Name);
-                Slices[SlicesCount].Color = DefaultSlices[SlicesCount].Color;
-                SlicesCount++;
-              }
-            }
-
-            // button outline
-            DrawRectangleLinesEx(addButtonRect, sliceEntryBorder,
-                                 FOREGROUND_COLOR);
+            DrawButton(addButtonRect.x, addButtonRect.y, addButtonRect.width,
+                       addButtonRect.height, "", FontSize, false,
+                       FOREGROUND_COLOR, BACKGROUND_COLOR, PRESSED_COLOR,
+                       HOVERED_COLOR, FOREGROUND_COLOR, Padding, NoShadow,
+                       AddEntryFunc, 0, 0, 0);
 
             // plus sign
             DrawCross(addButtonRect.x + addButtonRect.width / 2,
@@ -234,19 +219,20 @@ int main()
               {
                 palette[c / (COLORS_AMOUNT / PALETTE_ROW_AMOUNT)]
                     .Columns[c % (COLORS_AMOUNT / PALETTE_ROW_AMOUNT)] =
-                    (Button){PALETTE_COL_PERCENTAGE,
-                             "",
-                             FontSize,
-                             FOREGROUND_COLOR,
-                             Colors[c],
-                             Colors[c],
-                             Colors[c],
-                             c == Slices[i].Color ? FOREGROUND_COLOR
-                                                  : HIGHLIGHT_COLOR,
-                             Padding,
-                             NoShadow,
-                             ColorPickFunc,
-                             &(ColorPickArgs){i}};
+                    (Button){
+                        PALETTE_COL_PERCENTAGE,
+                        "",
+                        FontSize,
+                        true,
+                        FOREGROUND_COLOR,
+                        Colors[c],
+                        Colors[c],
+                        Colors[c],
+                        c == Slices[i].Color ? FOREGROUND_COLOR : HOVERED_COLOR,
+                        Padding,
+                        NoShadow,
+                        ColorPickFunc,
+                        &(ColorPickArgs){i}};
               }
 
               DrawButtonGrid(paletteX, paletteY, paletteWidth, paletteHeight,
@@ -329,8 +315,8 @@ int main()
                   DrawTextBox(sliceTextFieldRect.x, sliceTextFieldRect.y,
                               sliceTextFieldRect.width,
                               sliceTextFieldRect.height, Slices[i].Name,
-                              FontSize, FOREGROUND_COLOR, HIGHLIGHT_COLOR,
-                              HIGHLIGHT_COLOR, sliceEntryBorder, NoShadow);
+                              FontSize, FOREGROUND_COLOR, HOVERED_COLOR,
+                              FOREGROUND_COLOR, sliceEntryBorder, NoShadow);
                 }
 
                 if (!ButtonWasPressed &&
@@ -349,7 +335,7 @@ int main()
                 DrawTextBox(sliceTextFieldRect.x, sliceTextFieldRect.y,
                             sliceTextFieldRect.width, sliceTextFieldRect.height,
                             Slices[i].Name, FontSize, FOREGROUND_COLOR,
-                            BACKGROUND_COLOR, HIGHLIGHT_COLOR, sliceEntryBorder,
+                            BACKGROUND_COLOR, HOVERED_COLOR, sliceEntryBorder,
                             NoShadow);
               }
             }
@@ -363,33 +349,12 @@ int main()
                       i * sliceEntryHeight + Padding,
                   squareButtonSize, squareButtonSize};
 
-              if (IsPointInsideRect(MouseX, MouseY, trashButtonRect.x,
-                                    trashButtonRect.y, trashButtonRect.width,
-                                    trashButtonRect.height))
-              {
-                if (IsCursorOnScreen() || TouchCount > 0)
-                {
-                  // button background
-                  DrawRectangleRec(trashButtonRect, RED_HIGHLIGHT_COLOR);
-                }
-
-                if (!ButtonWasPressed &&
-                    IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
-                    IsPointInsideRect(MousePressedX, MousePressedY,
-                                      trashButtonRect.x, trashButtonRect.y,
-                                      trashButtonRect.width,
-                                      trashButtonRect.height))
-                {
-                  ButtonWasPressed = true;
-                  // remove entry and rearrange list
-                  memmove(&Slices[i], &Slices[i + 1],
-                          (SlicesCount - i - 1) * sizeof(Slice));
-                  SlicesCount--;
-                }
-              }
-
-              // button outline
-              DrawRectangleLinesEx(trashButtonRect, sliceEntryBorder, RED);
+              DrawButton(trashButtonRect.x, trashButtonRect.y,
+                         trashButtonRect.width, trashButtonRect.height, "",
+                         FontSize, false, RED, BACKGROUND_COLOR,
+                         RED_PRESSED_COLOR, RED_HOVERED_COLOR, RED, Padding,
+                         NoShadow, RemoveEntryFunc, 0, 0,
+                         &(RemoveEntryArgs){i});
 
               // draw a trash icon
               {
@@ -409,12 +374,19 @@ int main()
                     trashButtonRect.y + trashButtonRect.height / 4 + Padding,
                     squareButtonSize / 2 - Padding * 2,
                     squareButtonSize / 2 - Padding * 2, 3,
-                    (Row[]){
-                        100, 3,
-                        (Column[]){
-                            (Column){.Width = 33, .Color = RED_HIGHLIGHT_COLOR},
-                            (Column){.Width = 33, .Color = RED_HIGHLIGHT_COLOR},
-                            (Column){.Width = 33, .Color = RED_HIGHLIGHT_COLOR}}},
+                    (Row[]){100, 3,
+                            (Column[]){(Column){
+                                           .Width = 33,
+                                           .Color = RED_HOVERED_COLOR,
+                                       },
+                                       (Column){
+                                           .Width = 33,
+                                           .Color = RED_HOVERED_COLOR,
+                                       },
+                                       (Column){
+                                           .Width = 33,
+                                           .Color = RED_HOVERED_COLOR,
+                                       }}},
                     1);
 
                 // trash can handle
@@ -442,29 +414,11 @@ int main()
 
         // Draw a close button
         {
-          if (IsPointInsideRect(MouseX, MouseY, cornerButtonRect.x,
-                                cornerButtonRect.y, cornerButtonRect.width,
-                                cornerButtonRect.height))
-          {
-            if (IsCursorOnScreen() || TouchCount > 0)
-            {
-              // button background
-              DrawRectangleRec(cornerButtonRect, RED_HIGHLIGHT_COLOR);
-            }
-
-            if (!ButtonWasPressed && IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
-                IsPointInsideRect(MousePressedX, MousePressedY,
-                                  cornerButtonRect.x, cornerButtonRect.y,
-                                  cornerButtonRect.width,
-                                  cornerButtonRect.height))
-            {
-              ButtonWasPressed = true;
-              MenuOpened = false;
-            }
-          }
-
-          // button outline
-          DrawRectangleLinesEx(cornerButtonRect, Padding, RED);
+          DrawButton(cornerButtonRect.x, cornerButtonRect.y,
+                     cornerButtonRect.width, cornerButtonRect.height, "",
+                     FontSize, false, RED, BACKGROUND_COLOR, RED_PRESSED_COLOR,
+                     RED_HOVERED_COLOR, RED, Padding, NoShadow, ToggleMenuFunc,
+                     0, 0, 0);
 
           // x sign
           DrawCross(cornerButtonRect.x + cornerButtonRect.width / 2,

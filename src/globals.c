@@ -9,17 +9,20 @@
 #define ROUNDNESS 0.2f
 #define INITIAL_REPEAT_INTERVAL 0.3f  // Initial repeat interval in seconds
 #define MIN_REPEAT_INTERVAL 0.03f     // Minimum repeat interval in seconds
-#define FOREGROUND_COLOR BLACK
-#define BACKGROUND_COLOR LIGHTGRAY
 #define PALETTE_ROW_AMOUNT 2
 #define PALETTE_COL_AMOUNT (COLORS_AMOUNT / PALETTE_ROW_AMOUNT)
 #define PALETTE_ROW_PERCENTAGE 100 / (PALETTE_ROW_AMOUNT)
 #define PALETTE_COL_PERCENTAGE 100 / (PALETTE_COL_AMOUNT)
-#define HIGHLIGHT_COLOR GRAY
-#define RED_HIGHLIGHT_COLOR \
-  (Color)                   \
-  {                         \
-    255, 122, 122, 255      \
+#define FOREGROUND_COLOR BLACK
+#define BACKGROUND_COLOR LIGHTGRAY
+#define HIGHLIGHT_COLOR WHITE
+#define HOVERED_COLOR GRAY
+#define PRESSED_COLOR DARKGRAY
+#define RED_PRESSED_COLOR MAROON
+#define RED_HOVERED_COLOR \
+  (Color)                 \
+  {                       \
+    255, 122, 122, 255    \
   }
 
 typedef struct
