@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define CONTRAST_LIMIT 85
+#define CONTRAST_LIMIT 90
 
 #ifdef RELEASE
 #define LogIfTrue(...)

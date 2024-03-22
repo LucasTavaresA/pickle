@@ -158,22 +158,22 @@ static void DrawTextBox(int x,
   int textX = x + ((width - textSize.x) / 2);
   int textY = y + ((height - textSize.y) / 2);
 
-  Rectangle rec = {x, y, width, height};
+  Rectangle rect = {x, y, width, height};
 
   if (shadowStyle.Distance > 0)
   {
     DrawShadow(x, y, width, height, shadowStyle, borderColor);
   }
 
-  DrawRectangleRec(rec, backgroundColor);
+  DrawRectangleRec(rect, backgroundColor);
 
   if (borderThickness > 0)
   {
-    DrawRectangleLinesEx(rec, borderThickness, borderColor);
+    DrawRectangleLinesEx(rect, borderThickness, borderColor);
   }
   else if (borderThickness < 0)
   {
-    DrawRectangleLinesEx(rec, Padding, borderColor);
+    DrawRectangleLinesEx(rect, Padding, borderColor);
   }
 
   DrawTextEx(Fonte, text, (Vector2){textX, textY}, fontSize, TEXT_SPACING,
