@@ -12,6 +12,17 @@ static ShadowStyle NoShadow = {0};
 
 typedef struct
 {
+  int FieldIndex;
+} SelectTextFieldArgs;
+
+static void SelectTextFieldFunc(int buttonRow, int buttonColumn, void* _args)
+{
+  SelectTextFieldArgs* args = (SelectTextFieldArgs*)_args;
+  TypingIndex = args->FieldIndex;
+}
+
+typedef struct
+{
   int SliceIndex;
 } ColorPickArgs;
 
@@ -256,7 +267,17 @@ int main()
                   fmax(sliceNameTextSize.x, squareButtonSize) + Padding,
                   sliceNameTextSize.y};
 
-              if (TypingIndex == i)
+              if (TypingIndex != i)
+              {
+                DrawButton(sliceTextFieldRect.x, sliceTextFieldRect.y,
+                           sliceTextFieldRect.width, sliceTextFieldRect.height,
+                           Slices[i].Name, FontSize, false, FOREGROUND_COLOR,
+                           BACKGROUND_COLOR, PRESSED_COLOR, HOVERED_COLOR,
+                           FOREGROUND_COLOR, sliceEntryBorder, NoShadow,
+                           SelectTextFieldFunc, 0, 0,
+                           &(SelectTextFieldArgs){i});
+              }
+              else
               {
                 size_t nameLength = strlen(Slices[i].Name);
                 char displayName[nameLength + 2];
@@ -308,39 +329,6 @@ int main()
                     }
                   }
                 }
-              }
-              else if (IsPointInsideRect(MouseX, MouseY, sliceTextFieldRect.x,
-                                         sliceTextFieldRect.y,
-                                         sliceTextFieldRect.width,
-                                         sliceTextFieldRect.height))
-              {
-                if (IsCursorOnScreen() || TouchCount > 0)
-                {
-                  DrawTextBox(sliceTextFieldRect.x, sliceTextFieldRect.y,
-                              sliceTextFieldRect.width,
-                              sliceTextFieldRect.height, Slices[i].Name,
-                              FontSize, FOREGROUND_COLOR, HOVERED_COLOR,
-                              FOREGROUND_COLOR, sliceEntryBorder, NoShadow);
-                }
-
-                if (!ButtonWasPressed &&
-                    IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
-                    IsPointInsideRect(
-                        MousePressedX, MousePressedY, sliceTextFieldRect.x,
-                        sliceTextFieldRect.y, sliceTextFieldRect.width,
-                        sliceTextFieldRect.height))
-                {
-                  ButtonWasPressed = true;
-                  TypingIndex = i;
-                }
-              }
-              else
-              {
-                DrawTextBox(sliceTextFieldRect.x, sliceTextFieldRect.y,
-                            sliceTextFieldRect.width, sliceTextFieldRect.height,
-                            Slices[i].Name, FontSize, FOREGROUND_COLOR,
-                            BACKGROUND_COLOR, HOVERED_COLOR, sliceEntryBorder,
-                            NoShadow);
               }
             }
 
