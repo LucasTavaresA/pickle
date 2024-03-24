@@ -1,3 +1,6 @@
+// TODO(LucasTA): make switchable light/dark theme, and save preference
+// TODO(LucasTA): make the background a distinct color,
+// not a color in COLOR_LIST
 #include "../raylib/src/raylib.h"
 
 #include "char.c"
@@ -76,6 +79,7 @@ int main()
     {
       ScreenWidth = GetScreenWidth();
       ScreenHeight = GetScreenHeight();
+      // TODO(LucasTA): screenpadding vs padding?
       ScreenPadding =
           (ScreenWidth < ScreenHeight ? ScreenWidth / 16 : ScreenHeight / 32);
       FontSize = (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) / 25;
