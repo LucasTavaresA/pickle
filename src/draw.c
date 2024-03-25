@@ -351,13 +351,9 @@ static void DrawButton(int x,
                        int buttonColumn,
                        void* callbackArgs)
 {
-  Rectangle rect = {x, y, width, height};
-
   if (!ButtonWasPressed && IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
-      IsPointInsideRect(MouseX, MouseY, rect.x, rect.y, rect.width,
-                        rect.height) &&
-      IsPointInsideRect(MousePressedX, MousePressedY, rect.x, rect.y,
-                        rect.width, rect.height))
+      IsPointInsideRect(MouseX, MouseY, x, y, width, height) &&
+      IsPointInsideRect(MousePressedX, MousePressedY, x, y, width, height))
   {
     ButtonWasPressed = true;
 
@@ -374,11 +370,10 @@ static void DrawButton(int x,
   }
   else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
   {
-    if (IsPointInsideRect(MouseX, MouseY, rect.x, rect.y, rect.width,
-                          rect.height))
+    if (IsPointInsideRect(MouseX, MouseY, x, y, width, height))
     {
-      if (IsPointInsideRect(MousePressedX, MousePressedY, rect.x, rect.y,
-                            rect.width, rect.height) &&
+      if (IsPointInsideRect(MousePressedX, MousePressedY, x, y, width,
+                            height) &&
           !ButtonWasPressed)
       {
         ButtonWasPressed = true;
@@ -394,8 +389,8 @@ static void DrawButton(int x,
     }
     else
     {
-      if (IsPointInsideRect(MousePressedX, MousePressedY, rect.x, rect.y,
-                            rect.width, rect.height) &&
+      if (IsPointInsideRect(MousePressedX, MousePressedY, x, y, width,
+                            height) &&
           !ButtonWasPressed)
       {
         ButtonWasPressed = true;
@@ -410,8 +405,7 @@ static void DrawButton(int x,
   }
   else
   {
-    if (IsPointInsideRect(MouseX, MouseY, rect.x, rect.y, rect.width,
-                          rect.height))
+    if (IsPointInsideRect(MouseX, MouseY, x, y, width, height))
     {
       DrawTextBox(
           x, y, width, height, text, fontSize, textColor,
