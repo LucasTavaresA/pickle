@@ -11,7 +11,6 @@
 #include "globals.c"
 #include "log.c"
 
-static ShadowStyle NoShadow = {0};
 
 typedef struct
 {

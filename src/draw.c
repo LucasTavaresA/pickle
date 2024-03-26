@@ -69,6 +69,8 @@ typedef struct
   Button* Columns;
 } ButtonRow;
 
+static ShadowStyle NoShadow = (ShadowStyle){0};
+
 static void DrawShadow(int x,
                        int y,
                        int width,
