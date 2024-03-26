@@ -316,8 +316,12 @@ static void DrawCross(int x,
   DrawTextBox(x, y, width, height, text, fontSize, textColor, pressedColor,  \
               borderColor, borderThickness, shadowStyle);                    \
                                                                              \
+  ButtonPressedTime += GetFrameTime();                                       \
+                                                                             \
   if (repeatPresses == true && ButtonPressedTime >= KeyRepeatInterval)       \
   {                                                                          \
+    ButtonWasPressed = true;                                                 \
+                                                                             \
     if (callback != NULL)                                                    \
     {                                                                        \
       callback(buttonRow, buttonColumn, callbackArgs);                       \
@@ -326,9 +330,11 @@ static void DrawCross(int x,
     {                                                                        \
       LogAppend("The '%s' button does not have a command defined!\n", text); \
     }                                                                        \
-  }                                                                          \
                                                                              \
-  ButtonPressedTime += GetFrameTime();
+    ButtonPressedTime = 0;                                                   \
+    KeyRepeatInterval = fmax(KeyRepeatInterval * INITIAL_REPEAT_INTERVAL,    \
+                             MIN_REPEAT_INTERVAL);                           \
+  }
 
 static void DrawButton(int x,
                        int y,
@@ -351,11 +357,21 @@ static void DrawButton(int x,
                        int buttonColumn,
                        void* callbackArgs)
 {
-  if (!ButtonWasPressed && IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
+  if (!ButtonWasPressed && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
       IsPointInsideRect(MouseX, MouseY, x, y, width, height) &&
       IsPointInsideRect(MousePressedX, MousePressedY, x, y, width, height))
   {
     ButtonWasPressed = true;
+    ButtonPressedTime = 0;
+    KeyRepeatInterval = INITIAL_REPEAT_INTERVAL;
+  }
+  else if (!ButtonWasPressed && IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
+           IsPointInsideRect(MouseX, MouseY, x, y, width, height) &&
+           IsPointInsideRect(MousePressedX, MousePressedY, x, y, width, height))
+  {
+    ButtonWasPressed = true;
+    ButtonPressedTime = 0;
+    KeyRepeatInterval = INITIAL_REPEAT_INTERVAL;
 
     if (callback != NULL)
     {
@@ -365,18 +381,14 @@ static void DrawButton(int x,
     {
       LogAppend("The '%s' button does not have a command defined!\n", text);
     }
-
-    ButtonPressedTime = 0;
   }
   else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
   {
     if (IsPointInsideRect(MouseX, MouseY, x, y, width, height))
     {
-      if (IsPointInsideRect(MousePressedX, MousePressedY, x, y, width,
-                            height) &&
-          !ButtonWasPressed)
+      if (!ButtonWasPressed &&
+          IsPointInsideRect(MousePressedX, MousePressedY, x, y, width, height))
       {
-        ButtonWasPressed = true;
         HandleKeypress;
       }
       else
@@ -389,11 +401,9 @@ static void DrawButton(int x,
     }
     else
     {
-      if (IsPointInsideRect(MousePressedX, MousePressedY, x, y, width,
-                            height) &&
-          !ButtonWasPressed)
+      if (!ButtonWasPressed &&
+          IsPointInsideRect(MousePressedX, MousePressedY, x, y, width, height))
       {
-        ButtonWasPressed = true;
         HandleKeypress;
       }
       else

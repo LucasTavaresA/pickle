@@ -1,6 +1,9 @@
 // TODO(LucasTA): make switchable light/dark theme, and save preference
 // TODO(LucasTA): make the background a distinct color,
 // not a color in COLOR_LIST
+// TODO(LucasTA): remove macro constants due to c type "coercion" introducing
+// bizarre memory problems
+// TODO(LucasTA): Globalize 'sliceEntryBorder' or use 'Padding' for all borders
 #include "../raylib/src/raylib.h"
 
 #include "char.c"

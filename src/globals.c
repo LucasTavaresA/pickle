@@ -3,12 +3,18 @@
 
 #include "../raylib/src/raylib.h"
 
+#ifdef PLATFORM_ANDROID
+#define INITIAL_REPEAT_INTERVAL 0.5f
+#else
+#define INITIAL_REPEAT_INTERVAL 0.3f
+#endif
+
+#define MIN_REPEAT_INTERVAL INITIAL_REPEAT_INTERVAL / 10
+
 #define ARRAY_LENGTH(arr) sizeof(arr) / sizeof(arr[0])
 #define APP_NAME "pickle"
 #define TEXT_SPACING 2
 #define ROUNDNESS 0.2f
-#define INITIAL_REPEAT_INTERVAL 0.3f  // Initial repeat interval in seconds
-#define MIN_REPEAT_INTERVAL 0.03f     // Minimum repeat interval in seconds
 #define PALETTE_ROW_AMOUNT 2
 #define PALETTE_COL_AMOUNT (COLORS_AMOUNT / PALETTE_ROW_AMOUNT)
 #define PALETTE_ROW_PERCENTAGE 100 / (PALETTE_ROW_AMOUNT)
