@@ -1,6 +1,4 @@
 // TODO(LucasTA): make switchable light/dark theme, and save preference
-// TODO(LucasTA): remove macro constants due to c type "coercion" introducing
-// bizarre memory problems
 // TODO(LucasTA): refactor 'ScreenPadding', 'sliceEntryBorder' and 'Padding'
 // into one value for borders and paddings
 // TODO(LucasTA): use textures as icons for the buttons
@@ -35,10 +33,10 @@ static void ColorPickFunc(int buttonRow, int buttonColumn, void* _args)
       buttonRow * (COLORS_AMOUNT / PALETTE_ROW_AMOUNT) + buttonColumn;
 }
 
-static void AddEntryFunc()
+static void AddEntryFunc(int buttonRow, int buttonColumn, void* _args)
 {
-  Slices[SlicesCount].Name = strdup(DefaultSlices[SlicesCount].Name);
-  Slices[SlicesCount].Color = DefaultSlices[SlicesCount].Color;
+  Slices[SlicesCount].Name = strdup(DEFAULT_SLICES[SlicesCount].Name);
+  Slices[SlicesCount].Color = DEFAULT_SLICES[SlicesCount].Color;
   SlicesCount++;
 }
 
@@ -55,7 +53,7 @@ static void RemoveEntryFunc(int buttonRow, int buttonColumn, void* _args)
   SlicesCount--;
 }
 
-static void ToggleMenuFunc()
+static void ToggleMenuFunc(int buttonRow, int buttonColumn, void* _args)
 {
   MenuOpened = !MenuOpened;
 }
@@ -135,7 +133,7 @@ int main()
 
           if (SlicesCount == 0)
           {
-            DrawWheel(0, wheelRadius, DefaultSlices, COLORS_AMOUNT);
+            DrawWheel(0, wheelRadius, DEFAULT_SLICES, COLORS_AMOUNT);
           }
           else
           {
@@ -149,7 +147,7 @@ int main()
                      cornerButtonRect.width, cornerButtonRect.height, "",
                      FontSize, false, FOREGROUND_COLOR, BACKGROUND_COLOR,
                      PRESSED_COLOR, HOVERED_COLOR, FOREGROUND_COLOR, Padding,
-                     NoShadow, ToggleMenuFunc, 0, 0, 0);
+                     NO_SHADOW, ToggleMenuFunc, 0, 0, 0);
 
           // Draw a menu icon
           Row rows[] = {
@@ -191,7 +189,7 @@ int main()
             DrawButton(addButtonRect.x, addButtonRect.y, addButtonRect.width,
                        addButtonRect.height, "", FontSize, false,
                        FOREGROUND_COLOR, BACKGROUND_COLOR, PRESSED_COLOR,
-                       HOVERED_COLOR, FOREGROUND_COLOR, Padding, NoShadow,
+                       HOVERED_COLOR, FOREGROUND_COLOR, Padding, NO_SHADOW,
                        AddEntryFunc, 0, 0, 0);
 
             // plus sign
@@ -240,12 +238,12 @@ int main()
                              FontSize,
                              false,
                              FOREGROUND_COLOR,
-                             Colors[c],
-                             Colors[c],
-                             Colors[c],
-                             GetContrastedTextColor(Colors[c]),
+                             COLORS[c],
+                             COLORS[c],
+                             COLORS[c],
+                             GetContrastedTextColor(COLORS[c]),
                              c == Slices[i].Color ? Padding : 1,
-                             NoShadow,
+                             NO_SHADOW,
                              ColorPickFunc,
                              &(ColorPickArgs){i}};
               }
@@ -273,7 +271,7 @@ int main()
                            sliceTextFieldRect.width, sliceTextFieldRect.height,
                            Slices[i].Name, FontSize, false, FOREGROUND_COLOR,
                            BACKGROUND_COLOR, PRESSED_COLOR, HOVERED_COLOR,
-                           FOREGROUND_COLOR, sliceEntryBorder, NoShadow,
+                           FOREGROUND_COLOR, sliceEntryBorder, NO_SHADOW,
                            SelectTextFieldFunc, 0, 0,
                            &(SelectTextFieldArgs){i});
               }
@@ -287,7 +285,7 @@ int main()
                             sliceTextFieldRect.width, sliceTextFieldRect.height,
                             displayName, FontSize, FOREGROUND_COLOR,
                             HIGHLIGHT_COLOR, FOREGROUND_COLOR, sliceEntryBorder,
-                            NoShadow);
+                            NO_SHADOW);
 
                 if (IsKeyPressed(KEY_BACKSPACE))
                 {
@@ -345,7 +343,7 @@ int main()
                          trashButtonRect.width, trashButtonRect.height, "",
                          FontSize, false, RED, BACKGROUND_COLOR,
                          RED_PRESSED_COLOR, RED_HOVERED_COLOR, RED, Padding,
-                         NoShadow, RemoveEntryFunc, 0, 0,
+                         NO_SHADOW, RemoveEntryFunc, 0, 0,
                          &(RemoveEntryArgs){i});
 
               // draw a trash icon
@@ -409,7 +407,7 @@ int main()
           DrawButton(cornerButtonRect.x, cornerButtonRect.y,
                      cornerButtonRect.width, cornerButtonRect.height, "",
                      FontSize, false, RED, BACKGROUND_COLOR, RED_PRESSED_COLOR,
-                     RED_HOVERED_COLOR, RED, Padding, NoShadow, ToggleMenuFunc,
+                     RED_HOVERED_COLOR, RED, Padding, NO_SHADOW, ToggleMenuFunc,
                      0, 0, 0);
 
           // x sign

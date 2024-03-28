@@ -69,7 +69,7 @@ typedef struct
   Button* Columns;
 } ButtonRow;
 
-static ShadowStyle NoShadow = (ShadowStyle){0};
+static const ShadowStyle NO_SHADOW = (ShadowStyle){0};
 
 static void DrawShadow(int x,
                        int y,
@@ -262,7 +262,7 @@ static void DrawWheel(float angle,
   for (int i = 0; i < slice_amount; i++)
   {
     DrawCircleSector(center, radius, startAngle, endAngle, 0,
-                     Colors[slices[i].Color]);
+                     COLORS[slices[i].Color]);
 
     float midAngle = ((startAngle + endAngle) / 2) - (float)FontSize / 8;
     Vector2 labelPosition = {
@@ -271,7 +271,7 @@ static void DrawWheel(float angle,
 
     DrawTextPro(Fonte, slices[i].Name, labelPosition, (Vector2){0.5f, 0.5f},
                 midAngle, FontSize / 1.2, TEXT_SPACING,
-                GetContrastedTextColor(Colors[slices[i].Color]));
+                GetContrastedTextColor(COLORS[slices[i].Color]));
 
     startAngle += sectionSize;
     endAngle += sectionSize;
