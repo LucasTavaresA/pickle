@@ -20,6 +20,7 @@
 #define PALETTE_ROW_PERCENTAGE 100 / (PALETTE_ROW_AMOUNT)
 #define PALETTE_COL_PERCENTAGE 100 / (PALETTE_COL_AMOUNT)
 #define FOREGROUND_COLOR BLACK
+// NOTE(LucasTA): background should not be a color in COLOR_LIST
 #define BACKGROUND_COLOR LIGHTGRAY
 #define HIGHLIGHT_COLOR WHITE
 #define HOVERED_COLOR GRAY
@@ -55,11 +56,9 @@ static bool Clicked = false;
 static int TypingIndex = -1;
 static float KeyRepeatInterval = INITIAL_REPEAT_INTERVAL;
 
-// LucasTA: This is the coolest shit ever
+// NOTE(LucasTA): Odd number off colors is not supported XD
 #define COLOR_LIST \
-  X(LIGHTGRAY)     \
   X(GRAY)          \
-  X(DARKGRAY)      \
   X(YELLOW)        \
   X(GOLD)          \
   X(ORANGE)        \

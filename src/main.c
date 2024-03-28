@@ -1,9 +1,9 @@
 // TODO(LucasTA): make switchable light/dark theme, and save preference
-// TODO(LucasTA): make the background a distinct color,
-// not a color in COLOR_LIST
 // TODO(LucasTA): remove macro constants due to c type "coercion" introducing
 // bizarre memory problems
-// TODO(LucasTA): Globalize 'sliceEntryBorder' or use 'Padding' for all borders
+// TODO(LucasTA): refactor 'ScreenPadding', 'sliceEntryBorder' and 'Padding'
+// into one value for borders and paddings
+// TODO(LucasTA): use textures as icons for the buttons
 #include "../raylib/src/raylib.h"
 
 #include "char.c"
@@ -92,7 +92,6 @@ int main()
     {
       ScreenWidth = GetScreenWidth();
       ScreenHeight = GetScreenHeight();
-      // TODO(LucasTA): screenpadding vs padding?
       ScreenPadding =
           (ScreenWidth < ScreenHeight ? ScreenWidth / 16 : ScreenHeight / 32);
       FontSize = (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) / 25;
@@ -181,7 +180,7 @@ int main()
           int sliceEntryBorder = ScreenWidth / 500;
 
           // draw a button to add a slice
-          if (SlicesCount == 0 || SlicesCount < COLORS_AMOUNT)
+          if (SlicesCount < COLORS_AMOUNT)
           {
             Rectangle addButtonRect = {
                 sidePadding,
@@ -236,20 +235,19 @@ int main()
               {
                 palette[c / (COLORS_AMOUNT / PALETTE_ROW_AMOUNT)]
                     .Columns[c % (COLORS_AMOUNT / PALETTE_ROW_AMOUNT)] =
-                    (Button){
-                        PALETTE_COL_PERCENTAGE,
-                        "",
-                        FontSize,
-                        true,
-                        FOREGROUND_COLOR,
-                        Colors[c],
-                        Colors[c],
-                        Colors[c],
-                        c == Slices[i].Color ? FOREGROUND_COLOR : HOVERED_COLOR,
-                        Padding,
-                        NoShadow,
-                        ColorPickFunc,
-                        &(ColorPickArgs){i}};
+                    (Button){PALETTE_COL_PERCENTAGE,
+                             "",
+                             FontSize,
+                             false,
+                             FOREGROUND_COLOR,
+                             Colors[c],
+                             Colors[c],
+                             Colors[c],
+                             GetContrastedTextColor(Colors[c]),
+                             c == Slices[i].Color ? Padding : 1,
+                             NoShadow,
+                             ColorPickFunc,
+                             &(ColorPickArgs){i}};
               }
 
               DrawButtonGrid(paletteX, paletteY, paletteWidth, paletteHeight,
