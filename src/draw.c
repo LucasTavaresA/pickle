@@ -253,16 +253,6 @@ static void DrawWheel(float angle,
   float startAngle = angle;
   float endAngle = sectionSize + angle;
 
-  // Draw a border on the wheel
-  DrawRing(center, radius - 2, radius + 2, 0, 360, 0, FOREGROUND_COLOR);
-
-  // Draw a circle in the middle of the wheel
-  float inner_circle_radius = radius / 4;
-
-  DrawCircleV(center, inner_circle_radius, FOREGROUND_COLOR);
-  DrawRing(center, inner_circle_radius, inner_circle_radius + 2, 0, 360, 0,
-           BACKGROUND_COLOR);
-
   for (int i = 0; i < slice_amount; i++)
   {
     DrawCircleSector(center, radius, startAngle, endAngle, 0,
@@ -280,6 +270,16 @@ static void DrawWheel(float angle,
     startAngle += sectionSize;
     endAngle += sectionSize;
   }
+
+  // Draw a border on the wheel
+  DrawRing(center, radius - Border, radius + Border, 0, 360, 0, FOREGROUND_COLOR);
+
+  // Draw a circle in the middle of the wheel
+  float inner_circle_radius = radius / 4;
+
+  DrawCircleV(center, inner_circle_radius, FOREGROUND_COLOR);
+  DrawRing(center, inner_circle_radius, inner_circle_radius + Border, 0, 360, 0,
+           HIGHLIGHT_COLOR);
 
   // Draw the wheel paddle
   float paddle_bottom = center.y + radius + 20;
