@@ -1,5 +1,3 @@
-// TODO(LucasTA): refactor 'ScreenPadding', 'sliceEntryBorder' and 'Padding'
-// into one value for borders and paddings
 #include "../raylib/src/raylib.h"
 
 #include "draw.c"
@@ -125,10 +123,9 @@ int main()
     {
       ScreenWidth = GetScreenWidth();
       ScreenHeight = GetScreenHeight();
-      ScreenPadding =
-          (ScreenWidth < ScreenHeight ? ScreenWidth / 16 : ScreenHeight / 32);
       FontSize = (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) / 25;
       Padding = ScreenWidth / 250;
+      Border = ScreenWidth / 500;
     }
 
     // update mouse and touch information
@@ -160,7 +157,7 @@ int main()
       Rectangle cornerButtonRect = {ScreenWidth - squareButtonSize - Padding,
                                     Padding, squareButtonSize,
                                     squareButtonSize};
-      int sidePadding = (ScreenWidth < ScreenHeight ? 0 : ScreenPadding * 8);
+      int sidePadding = (ScreenWidth < ScreenHeight ? 0 : ScreenWidth / 6);
       float maxTextFieldWidth =
           ScreenWidth - sidePadding * 2 - squareButtonSize * 2;
 
@@ -173,7 +170,6 @@ int main()
                 (ScreenWidth < ScreenHeight ? ScreenHeight / 6
                                             : ScreenHeight / 3);
             int sliceEntryWidth = ScreenWidth - sidePadding * 2;
-            int sliceEntryBorder = ScreenWidth / 500;
 
             // draw a button to add a slice
             if (SlicesCount < COLORS_AMOUNT)
@@ -188,7 +184,7 @@ int main()
               DrawButton(addButtonRect.x, addButtonRect.y, addButtonRect.width,
                          addButtonRect.height, "", FontSize, false,
                          FOREGROUND_COLOR, BACKGROUND_COLOR, PRESSED_COLOR,
-                         HOVERED_COLOR, FOREGROUND_COLOR, Padding, NO_SHADOW,
+                         HOVERED_COLOR, FOREGROUND_COLOR, Border, NO_SHADOW,
                          NO_ICON, AddEntryFunc, 0, 0, 0);
 
               // plus sign
@@ -211,8 +207,7 @@ int main()
                   sliceEntryWidth, sliceEntryHeight};
 
               // slice entry outline
-              DrawRectangleLinesEx(sliceEntryRect, sliceEntryBorder,
-                                   FOREGROUND_COLOR);
+              DrawRectangleLinesEx(sliceEntryRect, Border, FOREGROUND_COLOR);
 
               // draw color palette
               {
@@ -243,7 +238,7 @@ int main()
                                COLORS[c],
                                COLORS[c],
                                GetContrastedTextColor(COLORS[c]),
-                               c == Slices[i].Color ? Padding : 1,
+                               c == Slices[i].Color ? Padding : Border,
                                NO_SHADOW,
                                NO_ICON,
                                ColorPickFunc,
@@ -271,7 +266,7 @@ int main()
                       sliceTextFieldRect.width, sliceTextFieldRect.height,
                       Slices[i].Name, FontSize, false, FOREGROUND_COLOR,
                       BACKGROUND_COLOR, PRESSED_COLOR, HOVERED_COLOR,
-                      FOREGROUND_COLOR, sliceEntryBorder, NO_SHADOW, NO_ICON,
+                      FOREGROUND_COLOR, Border, NO_SHADOW, NO_ICON,
                       SelectTextFieldFunc, 0, 0, &(SelectTextFieldArgs){i});
                 }
                 else
@@ -279,12 +274,11 @@ int main()
 #ifdef PLATFORM_ANDROID
                   CurrentScene = SCENE_KEYBOARD;
 #else
-                  DrawTextField(sliceTextFieldRect.x, sliceTextFieldRect.y,
-                                sliceTextFieldRect.width,
-                                sliceTextFieldRect.height, maxTextFieldWidth,
-                                FOREGROUND_COLOR, HIGHLIGHT_COLOR,
-                                FOREGROUND_COLOR, FontSize, sliceEntryBorder,
-                                Slices[i].Name);
+                  DrawTextField(
+                      sliceTextFieldRect.x, sliceTextFieldRect.y,
+                      sliceTextFieldRect.width, sliceTextFieldRect.height,
+                      maxTextFieldWidth, FOREGROUND_COLOR, HIGHLIGHT_COLOR,
+                      FOREGROUND_COLOR, FontSize, Border, Slices[i].Name);
 #endif
                 }
               }
@@ -334,7 +328,6 @@ int main()
           Vector2 sliceNameTextSize = MeasureTextEx(
               Fonte, Slices[TypingIndex].Name, FontSize * 2, TEXT_SPACING);
           int keyboardY = ScreenHeight / 1.5;
-          int sliceEntryBorder = ScreenWidth / 500;
 
           Rectangle sliceTextFieldRect = {
               Padding, keyboardY - sliceNameTextSize.y - Padding,
@@ -344,21 +337,22 @@ int main()
           DrawTextField(sliceTextFieldRect.x, sliceTextFieldRect.y,
                         sliceTextFieldRect.width, sliceTextFieldRect.height,
                         maxTextFieldWidth, FOREGROUND_COLOR, HIGHLIGHT_COLOR,
-                        FOREGROUND_COLOR, FontSize, Padding,
+                        FOREGROUND_COLOR, FontSize, Border,
                         Slices[TypingIndex].Name);
 
-#define KEYBOARD_BUTTON(key, widthPercentage)                              \
-  (Button)                                                                 \
-  {                                                                        \
-    .WidthPercentage = widthPercentage, .Text = key, .BorderThickness = 1, \
-    .RepeatPresses = true, .TextColor = FOREGROUND_COLOR,                  \
-    .BackgroundColor = HIGHLIGHT_COLOR, .PressedColor = PRESSED_COLOR,     \
-    .HoveredColor = HOVERED_COLOR, .BorderColor = FOREGROUND_COLOR,        \
-    .Callback = KeyboardPressFunc, .CallbackArgs = &(KeyboardPressArgs)    \
-    {                                                                      \
-      Slices[TypingIndex].Name, strlen(Slices[TypingIndex].Name), key[0],  \
-          sliceTextFieldRect.width, maxTextFieldWidth                      \
-    }                                                                      \
+#define KEYBOARD_BUTTON(key, widthPercentage)                             \
+  (Button)                                                                \
+  {                                                                       \
+    .WidthPercentage = widthPercentage, .Text = key,                      \
+    .BorderThickness = Border, .RepeatPresses = true,                     \
+    .TextColor = FOREGROUND_COLOR, .BackgroundColor = HIGHLIGHT_COLOR,    \
+    .PressedColor = PRESSED_COLOR, .HoveredColor = HOVERED_COLOR,         \
+    .BorderColor = FOREGROUND_COLOR, .Callback = KeyboardPressFunc,       \
+    .CallbackArgs = &(KeyboardPressArgs)                                  \
+    {                                                                     \
+      Slices[TypingIndex].Name, strlen(Slices[TypingIndex].Name), key[0], \
+          sliceTextFieldRect.width, maxTextFieldWidth                     \
+    }                                                                     \
   }
           ButtonRow keyboard[KEYBOARD_ROWS] = {
               {
@@ -406,7 +400,7 @@ int main()
                       (Button){
                           .WidthPercentage = 100 / 8,
                           .Text = "<-",
-                          .BorderThickness = 1,
+                          .BorderThickness = Border,
                           .RepeatPresses = true,
                           .TextColor = RED,
                           .BackgroundColor = HIGHLIGHT_COLOR,
@@ -446,10 +440,9 @@ int main()
           // Draw the wheel
           {
             {
-              int wheelRadius =
-                  (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) /
-                      2 -
-                  ScreenPadding;
+              int wheelRadius = (ScreenWidth < ScreenHeight
+                                     ? ScreenWidth / 2 - ScreenWidth / 16
+                                     : ScreenHeight / 2 - ScreenHeight / 32);
 
               if (SlicesCount == 0)
               {
