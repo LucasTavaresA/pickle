@@ -9,8 +9,6 @@
 #include "log.c"
 
 #ifdef PLATFORM_ANDROID
-static bool KeyboardOpen = false;
-
 typedef struct
 {
   char* Buffer;
@@ -69,7 +67,8 @@ static void ColorPickFunc(int buttonRow, int buttonColumn, void* _args)
 
 static void AddEntryFunc(int buttonRow, int buttonColumn, void* _args)
 {
-  strncpy(Slices[SlicesCount].Name, DEFAULT_SLICES[SlicesCount].Name, SLICE_NAME_SIZE);
+  strncpy(Slices[SlicesCount].Name, DEFAULT_SLICES[SlicesCount].Name,
+          SLICE_NAME_SIZE);
   Slices[SlicesCount].Color = DEFAULT_SLICES[SlicesCount].Color;
   SlicesCount++;
 }
@@ -132,9 +131,12 @@ int main()
 
     // update mouse and touch information
     {
+#ifdef PLATFORM_ANDROID
+      TouchCount = GetTouchPointCount();
+#endif
+
       MouseX = GetMouseX();
       MouseY = GetMouseY();
-      TouchCount = GetTouchPointCount();
       ButtonWasPressed = false;
       Clicked = false;
 
@@ -268,11 +270,10 @@ int main()
         DrawButton(cornerButtonRect.x, sliceTextFieldRect.y,
                    cornerButtonRect.width, sliceTextFieldRect.height, ">",
                    FontSize, false, GREEN, HIGHLIGHT_COLOR, GREEN_PRESSED_COLOR,
-                   GREEN_HOVERED_COLOR, GREEN, 1, NO_SHADOW,
-                   KeyboardPressFunc, 0, 0,
+                   GREEN_HOVERED_COLOR, GREEN, 1, NO_SHADOW, KeyboardPressFunc,
+                   0, 0,
                    &(KeyboardPressArgs){Slices[TypingIndex].Name,
                                         strlen(Slices[TypingIndex].Name), '>'});
-
       }
       // TODO(LucasTA): Reverse this to if (MenuOpened) {}
       // maybe have a 'Scene' enum and use a switch case

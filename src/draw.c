@@ -400,8 +400,11 @@ static void DrawButton(int x,
       else
       {
         DrawTextBox(x, y, width, height, text, fontSize, textColor,
-                    IsCursorOnScreen() || TouchCount > 0 ? hoveredColor
-                                                         : backgroundColor,
+#ifdef PLATFORM_ANDROID
+                    TouchCount > 0 ? hoveredColor : backgroundColor,
+#else
+                    hoveredColor,
+#endif
                     borderColor, borderThickness, shadowStyle);
       }
     }
@@ -423,10 +426,13 @@ static void DrawButton(int x,
   {
     if (IsPointInsideRect(MouseX, MouseY, x, y, width, height))
     {
-      DrawTextBox(
-          x, y, width, height, text, fontSize, textColor,
-          IsCursorOnScreen() || TouchCount > 0 ? hoveredColor : backgroundColor,
-          borderColor, borderThickness, shadowStyle);
+      DrawTextBox(x, y, width, height, text, fontSize, textColor,
+#ifdef PLATFORM_ANDROID
+                  TouchCount > 0 ? hoveredColor : backgroundColor,
+#else
+                  hoveredColor,
+#endif
+                  borderColor, borderThickness, shadowStyle);
     }
     else
     {

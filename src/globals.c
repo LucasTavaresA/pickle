@@ -75,6 +75,9 @@ static const Color GREEN_PRESSED_COLOR = DARKGREEN;
 static const Color GREEN_HOVERED_COLOR = (Color){255, 255, 122, 255};
 
 #ifdef PLATFORM_ANDROID
+static int TouchCount = 0;
+static bool KeyboardOpen = false;
+
 static const float INITIAL_REPEAT_INTERVAL = 0.5f;
 #else
 static const float INITIAL_REPEAT_INTERVAL = 0.3f;
@@ -95,7 +98,6 @@ static int MouseX = 0;
 static int MouseY = 0;
 static int MousePressedX = 0;
 static int MousePressedY = 0;
-static int TouchCount = 0;
 static int FontSize = 0;
 static int TypingIndex = -1;
 
