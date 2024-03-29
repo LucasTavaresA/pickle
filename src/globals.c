@@ -101,4 +101,12 @@ static int MousePressedY = 0;
 static int FontSize = 0;
 static int TypingIndex = -1;
 
+#define ICON_LIST \
+  X(Menu)         \
+  X(Trash)
+
+#define X(name) static Texture2D name##Icon;
+ICON_LIST
+#undef X
+
 #endif  // PICKLE_GLOBALS

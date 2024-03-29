@@ -59,6 +59,7 @@ typedef struct
   Color BorderColor;
   int BorderThickness;
   ShadowStyle ShadowStyle;
+  Texture2D Icon;
   void (*Callback)(int ButtonRow, int ButtonColumn, void* CallbackArgs);
   void* CallbackArgs;
 } Button;
@@ -71,6 +72,8 @@ typedef struct
 } ButtonRow;
 
 static const ShadowStyle NO_SHADOW = (ShadowStyle){0};
+static const Texture2D NO_ICON = (Texture2D){0};
+static const Rectangle ICON_RECTANGLE = (Rectangle){0, 0, 24, 24};
 
 static void DrawShadow(int x,
                        int y,
@@ -356,6 +359,7 @@ static void DrawButton(int x,
                        Color borderColor,
                        int borderThickness,
                        ShadowStyle shadowStyle,
+                       Texture2D icon,
                        void (*callback)(int buttonRow,
                                         int buttonColumn,
                                         void* callbackArgs),
@@ -440,6 +444,21 @@ static void DrawButton(int x,
                   backgroundColor, borderColor, borderThickness, shadowStyle);
     }
   }
+
+  if (icon.width > 0)
+  {
+    if (width < height)
+    {
+      height = width;
+    }
+    else
+    {
+      width = height;
+    }
+
+    DrawTexturePro(icon, ICON_RECTANGLE, (Rectangle){x, y, width, height},
+                   (Vector2){0, 0}, 0, WHITE);
+  }
 }
 #undef HandleKeypress
 
@@ -477,8 +496,8 @@ static void DrawButtonGrid(int x,
           rows[i].Columns[j].TextColor, rows[i].Columns[j].BackgroundColor,
           rows[i].Columns[j].PressedColor, rows[i].Columns[j].HoveredColor,
           rows[i].Columns[j].BorderColor, rows[i].Columns[j].BorderThickness,
-          rows[i].Columns[j].ShadowStyle, rows[i].Columns[j].Callback, i, j,
-          rows[i].Columns[j].CallbackArgs);
+          rows[i].Columns[j].ShadowStyle, rows[i].Columns[j].Icon,
+          rows[i].Columns[j].Callback, i, j, rows[i].Columns[j].CallbackArgs);
 
       curX += colLength + padding;
       takenWidth += colLength;

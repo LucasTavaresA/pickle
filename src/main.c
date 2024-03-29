@@ -1,7 +1,5 @@
-// TODO(LucasTA): make switchable light/dark theme, and save preference
 // TODO(LucasTA): refactor 'ScreenPadding', 'sliceEntryBorder' and 'Padding'
 // into one value for borders and paddings
-// TODO(LucasTA): use textures as icons for the buttons
 #include "../raylib/src/raylib.h"
 
 #include "draw.c"
@@ -102,6 +100,10 @@ int main()
 #endif
 
   Fonte = LoadFont("iosevka-regular.ttf");
+
+#define X(name) name##Icon = LoadTexture(#name "Icon.png");
+  ICON_LIST
+#undef X
 
 #ifndef PLATFORM_ANDROID
   ChangeDirectory("..");
@@ -270,8 +272,8 @@ int main()
         DrawButton(cornerButtonRect.x, sliceTextFieldRect.y,
                    cornerButtonRect.width, sliceTextFieldRect.height, ">",
                    FontSize, false, GREEN, HIGHLIGHT_COLOR, GREEN_PRESSED_COLOR,
-                   GREEN_HOVERED_COLOR, GREEN, 1, NO_SHADOW, KeyboardPressFunc,
-                   0, 0,
+                   GREEN_HOVERED_COLOR, GREEN, 1, NO_SHADOW, NO_ICON,
+                   KeyboardPressFunc, 0, 0,
                    &(KeyboardPressArgs){Slices[TypingIndex].Name,
                                         strlen(Slices[TypingIndex].Name), '>'});
       }
@@ -303,22 +305,7 @@ int main()
                      cornerButtonRect.width, cornerButtonRect.height, "",
                      FontSize, false, FOREGROUND_COLOR, BACKGROUND_COLOR,
                      PRESSED_COLOR, HOVERED_COLOR, FOREGROUND_COLOR, Padding,
-                     NO_SHADOW, ToggleMenuFunc, 0, 0, 0);
-
-          // Draw a menu icon
-          Row rows[] = {
-              {33, 1,
-               (Column[]){(Column){.Width = 100, .Color = FOREGROUND_COLOR}}},
-              {33, 1,
-               (Column[]){(Column){.Width = 100, .Color = FOREGROUND_COLOR}}},
-              {33, 1,
-               (Column[]){(Column){.Width = 100, .Color = FOREGROUND_COLOR}}},
-          };
-
-          DrawRectangleGrid(cornerButtonRect.x + ((float)squareButtonSize / 8),
-                            cornerButtonRect.y + ((float)squareButtonSize / 8),
-                            squareButtonSize * 3 / 4, squareButtonSize * 3 / 4,
-                            Padding, rows, ARRAY_LENGTH(rows));
+                     NO_SHADOW, MenuIcon, ToggleMenuFunc, 0, 0, 0);
         }
       }
       else
@@ -344,7 +331,7 @@ int main()
                        addButtonRect.height, "", FontSize, false,
                        FOREGROUND_COLOR, BACKGROUND_COLOR, PRESSED_COLOR,
                        HOVERED_COLOR, FOREGROUND_COLOR, Padding, NO_SHADOW,
-                       AddEntryFunc, 0, 0, 0);
+                       NO_ICON, AddEntryFunc, 0, 0, 0);
 
             // plus sign
             DrawCross(addButtonRect.x + addButtonRect.width / 2,
@@ -398,6 +385,7 @@ int main()
                              GetContrastedTextColor(COLORS[c]),
                              c == Slices[i].Color ? Padding : 1,
                              NO_SHADOW,
+                             NO_ICON,
                              ColorPickFunc,
                              &(ColorPickArgs){i}};
               }
@@ -423,7 +411,7 @@ int main()
                            Slices[i].Name, FontSize, false, FOREGROUND_COLOR,
                            BACKGROUND_COLOR, PRESSED_COLOR, HOVERED_COLOR,
                            FOREGROUND_COLOR, sliceEntryBorder, NO_SHADOW,
-                           SelectTextFieldFunc, 0, 0,
+                           NO_ICON, SelectTextFieldFunc, 0, 0,
                            &(SelectTextFieldArgs){i});
               }
               else
@@ -454,61 +442,8 @@ int main()
                          trashButtonRect.width, trashButtonRect.height, "",
                          FontSize, false, RED, BACKGROUND_COLOR,
                          RED_PRESSED_COLOR, RED_HOVERED_COLOR, RED, Padding,
-                         NO_SHADOW, RemoveEntryFunc, 0, 0,
+                         NO_SHADOW, TrashIcon, RemoveEntryFunc, 0, 0,
                          &(RemoveEntryArgs){i});
-
-              // draw a trash icon
-              {
-                int trashButtonLidHandleSize = Padding * 4;
-
-                // trash can bucket
-                DrawRectangleRounded(
-                    (Rectangle){trashButtonRect.x + trashButtonRect.width / 4,
-                                trashButtonRect.y + trashButtonRect.height / 4,
-                                (float)squareButtonSize / 2,
-                                (float)squareButtonSize / 2},
-                    ROUNDNESS, 0, RED);
-
-                // trash can bucket shape
-                DrawRectangleGrid(
-                    trashButtonRect.x + trashButtonRect.width / 4 + Padding,
-                    trashButtonRect.y + trashButtonRect.height / 4 + Padding,
-                    squareButtonSize / 2 - Padding * 2,
-                    squareButtonSize / 2 - Padding * 2, 3,
-                    (Row[]){100, 3,
-                            (Column[]){(Column){
-                                           .Width = 33,
-                                           .Color = RED_HOVERED_COLOR,
-                                       },
-                                       (Column){
-                                           .Width = 33,
-                                           .Color = RED_HOVERED_COLOR,
-                                       },
-                                       (Column){
-                                           .Width = 33,
-                                           .Color = RED_HOVERED_COLOR,
-                                       }}},
-                    1);
-
-                // trash can handle
-                DrawRectangleRec(
-                    (Rectangle){trashButtonRect.x + trashButtonRect.width / 2 -
-                                    (float)trashButtonLidHandleSize / 2,
-                                trashButtonRect.y + trashButtonRect.height / 6,
-                                trashButtonLidHandleSize,
-                                trashButtonLidHandleSize},
-                    RED);
-
-                // trash can lid
-                DrawRectangleRec(
-                    (Rectangle){trashButtonRect.x + trashButtonRect.width / 4 -
-                                    (float)trashButtonLidHandleSize / 4,
-                                trashButtonRect.y + trashButtonRect.height / 4,
-                                (float)squareButtonSize / 2 +
-                                    (float)trashButtonLidHandleSize / 2,
-                                (float)squareButtonSize / 6},
-                    RED);
-              }
             }
           }
         }
@@ -518,8 +453,8 @@ int main()
           DrawButton(cornerButtonRect.x, cornerButtonRect.y,
                      cornerButtonRect.width, cornerButtonRect.height, "",
                      FontSize, false, RED, BACKGROUND_COLOR, RED_PRESSED_COLOR,
-                     RED_HOVERED_COLOR, RED, Padding, NO_SHADOW, ToggleMenuFunc,
-                     0, 0, 0);
+                     RED_HOVERED_COLOR, RED, Padding, NO_SHADOW, NO_ICON,
+                     ToggleMenuFunc, 0, 0, 0);
 
           // x sign
           DrawCross(cornerButtonRect.x + cornerButtonRect.width / 2,
@@ -542,6 +477,9 @@ int main()
     }
   }
 
+#define X(name) UnloadTexture(name##Icon);
+  ICON_LIST
+#undef X
   CloseWindow();
   return 0;
 }
