@@ -4,11 +4,45 @@
 // TODO(LucasTA): use textures as icons for the buttons
 #include "../raylib/src/raylib.h"
 
-#include "char.c"
 #include "draw.c"
 #include "globals.c"
 #include "log.c"
 
+#ifdef PLATFORM_ANDROID
+static bool KeyboardOpen = false;
+
+typedef struct
+{
+  char* Buffer;
+  int BufferLength;
+  char KeyPressed;
+  int FieldWidth;
+  int MaxFieldWidth;
+} KeyboardPressArgs;
+
+void KeyboardPressFunc(int buttonRow, int buttonColumn, void* _args)
+{
+  KeyboardPressArgs* args = (KeyboardPressArgs*)_args;
+
+  if (args->KeyPressed == '<')
+  {
+    args->Buffer[args->BufferLength - 1] = '\0';
+  }
+  else if (args->KeyPressed == '>')
+  {
+    KeyboardOpen = false;
+    TypingIndex = -1;
+  }
+  else if (args->FieldWidth < args->MaxFieldWidth)
+  {
+    args->Buffer[args->BufferLength] = tolower(args->KeyPressed);
+    args->Buffer[args->BufferLength + 1] = '\0';
+  }
+}
+
+#define KEYBOARD_ROWS 4
+#define KEYBOARD_ROW_PERCENTAGE 100 / KEYBOARD_ROWS
+#endif
 
 typedef struct
 {
@@ -122,8 +156,129 @@ int main()
       Rectangle cornerButtonRect = {ScreenWidth - squareButtonSize - Padding,
                                     Padding, squareButtonSize,
                                     squareButtonSize};
+      int sidePadding = (ScreenWidth < ScreenHeight ? 0 : ScreenPadding * 8);
+      float maxTextFieldWidth =
+          ScreenWidth - sidePadding * 2 - squareButtonSize * 2;
 
-      if (!MenuOpened)
+#ifdef PLATFORM_ANDROID
+      if (KeyboardOpen)
+      {
+        Vector2 sliceNameTextSize = MeasureTextEx(
+            Fonte, Slices[TypingIndex].Name, FontSize * 2, TEXT_SPACING);
+        int keyboardY = ScreenHeight / 1.5;
+
+        int sliceEntryBorder = ScreenWidth / 500;
+
+        Rectangle sliceTextFieldRect = {
+            Padding, keyboardY - sliceNameTextSize.y - Padding,
+            fmax(sliceNameTextSize.x, squareButtonSize) + Padding,
+            sliceNameTextSize.y};
+
+        DrawTextField(sliceTextFieldRect.x, sliceTextFieldRect.y,
+                      sliceTextFieldRect.width, sliceTextFieldRect.height,
+                      maxTextFieldWidth, FOREGROUND_COLOR, HIGHLIGHT_COLOR,
+                      FOREGROUND_COLOR, FontSize, Padding,
+                      Slices[TypingIndex].Name);
+
+#define KEYBOARD_BUTTON(key, widthPercentage)                              \
+  (Button)                                                                 \
+  {                                                                        \
+    .WidthPercentage = widthPercentage, .Text = key, .BorderThickness = 1, \
+    .RepeatPresses = true, .TextColor = FOREGROUND_COLOR,                  \
+    .BackgroundColor = HIGHLIGHT_COLOR, .PressedColor = PRESSED_COLOR,     \
+    .HoveredColor = HOVERED_COLOR, .BorderColor = FOREGROUND_COLOR,        \
+    .Callback = KeyboardPressFunc, .CallbackArgs = &(KeyboardPressArgs)    \
+    {                                                                      \
+      Slices[TypingIndex].Name, strlen(Slices[TypingIndex].Name), key[0],  \
+          sliceTextFieldRect.width, maxTextFieldWidth                      \
+    }                                                                      \
+  }
+        ButtonRow keyboard[KEYBOARD_ROWS] = {
+            {
+                KEYBOARD_ROW_PERCENTAGE,
+                10,
+                (Button[10]){
+                    KEYBOARD_BUTTON("q", 100 / 10),
+                    KEYBOARD_BUTTON("w", 100 / 10),
+                    KEYBOARD_BUTTON("e", 100 / 10),
+                    KEYBOARD_BUTTON("r", 100 / 10),
+                    KEYBOARD_BUTTON("t", 100 / 10),
+                    KEYBOARD_BUTTON("y", 100 / 10),
+                    KEYBOARD_BUTTON("u", 100 / 10),
+                    KEYBOARD_BUTTON("i", 100 / 10),
+                    KEYBOARD_BUTTON("o", 100 / 10),
+                    KEYBOARD_BUTTON("p", 100 / 10),
+                },
+            },
+            {
+                KEYBOARD_ROW_PERCENTAGE,
+                9,
+                (Button[9]){
+                    KEYBOARD_BUTTON("a", 100 / 9),
+                    KEYBOARD_BUTTON("s", 100 / 9),
+                    KEYBOARD_BUTTON("d", 100 / 9),
+                    KEYBOARD_BUTTON("f", 100 / 9),
+                    KEYBOARD_BUTTON("g", 100 / 9),
+                    KEYBOARD_BUTTON("h", 100 / 9),
+                    KEYBOARD_BUTTON("j", 100 / 9),
+                    KEYBOARD_BUTTON("k", 100 / 9),
+                    KEYBOARD_BUTTON("l", 100 / 9),
+                },
+            },
+            {
+                KEYBOARD_ROW_PERCENTAGE,
+                8,
+                (Button[8]){
+                    KEYBOARD_BUTTON("z", 100 / 8),
+                    KEYBOARD_BUTTON("x", 100 / 8),
+                    KEYBOARD_BUTTON("c", 100 / 8),
+                    KEYBOARD_BUTTON("v", 100 / 8),
+                    KEYBOARD_BUTTON("b", 100 / 8),
+                    KEYBOARD_BUTTON("n", 100 / 8),
+                    KEYBOARD_BUTTON("m", 100 / 8),
+                    (Button){
+                        .WidthPercentage = 100 / 8,
+                        .Text = "<-",
+                        .BorderThickness = 1,
+                        .RepeatPresses = true,
+                        .TextColor = RED,
+                        .BackgroundColor = HIGHLIGHT_COLOR,
+                        .PressedColor = RED_PRESSED_COLOR,
+                        .HoveredColor = RED_HOVERED_COLOR,
+                        .BorderColor = RED,
+                        .Callback = KeyboardPressFunc,
+                        .CallbackArgs =
+                            &(KeyboardPressArgs){
+                                Slices[TypingIndex].Name,
+                                strlen(Slices[TypingIndex].Name), '<',
+                                sliceTextFieldRect.width, maxTextFieldWidth}},
+                },
+            },
+            {KEYBOARD_ROW_PERCENTAGE, 3,
+             (Button[3]){
+                 (Button){100 / 3},
+                 KEYBOARD_BUTTON(" ", 100 / 3),
+             }},
+        };
+#undef KEYBOARD_BUTTON
+
+        DrawButtonGrid(0, keyboardY, ScreenWidth, ScreenHeight - keyboardY, 0,
+                       keyboard, KEYBOARD_ROWS);
+
+        DrawButton(cornerButtonRect.x, sliceTextFieldRect.y,
+                   cornerButtonRect.width, sliceTextFieldRect.height, ">",
+                   FontSize, false, GREEN, HIGHLIGHT_COLOR, GREEN_PRESSED_COLOR,
+                   GREEN_HOVERED_COLOR, GREEN, 1, NO_SHADOW,
+                   KeyboardPressFunc, 0, 0,
+                   &(KeyboardPressArgs){Slices[TypingIndex].Name,
+                                        strlen(Slices[TypingIndex].Name), '>'});
+
+      }
+      // TODO(LucasTA): Reverse this to if (MenuOpened) {}
+      // maybe have a 'Scene' enum and use a switch case
+      else
+#endif
+          if (!MenuOpened)
       {
         // Draw the wheel
         {
@@ -169,8 +324,6 @@ int main()
       {
         // draw the slices menu
         {
-          int sidePadding =
-              (ScreenWidth < ScreenHeight ? 0 : ScreenPadding * 8);
           int sliceEntryHeight =
               (ScreenWidth < ScreenHeight ? ScreenHeight / 6
                                           : ScreenHeight / 3);
@@ -252,9 +405,6 @@ int main()
                              Padding, palette, PALETTE_ROW_AMOUNT);
             }
 
-            // TODO(LucasTA):
-            //   make android keyboard
-            //   separate into function DrawTextField()
             // draw editable text box
             {
               Rectangle sliceTextFieldRect = {
@@ -277,56 +427,16 @@ int main()
               }
               else
               {
-                size_t nameLength = strlen(Slices[i].Name);
-                char displayName[nameLength + 2];
-                snprintf(displayName, nameLength + 2, "%s|", Slices[i].Name);
-
-                DrawTextBox(sliceTextFieldRect.x, sliceTextFieldRect.y,
-                            sliceTextFieldRect.width, sliceTextFieldRect.height,
-                            displayName, FontSize, FOREGROUND_COLOR,
-                            HIGHLIGHT_COLOR, FOREGROUND_COLOR, sliceEntryBorder,
-                            NO_SHADOW);
-
-                if (IsKeyPressed(KEY_BACKSPACE))
-                {
-                  Slices[i].Name[nameLength - 1] = '\0';
-                  ButtonPressedTime = 0;
-                  KeyRepeatInterval = INITIAL_REPEAT_INTERVAL;
-                }
-                else if (IsKeyDown(KEY_BACKSPACE))
-                {
-                  ButtonPressedTime += GetFrameTime();
-
-                  if (ButtonPressedTime >= KeyRepeatInterval)
-                  {
-                    Slices[i].Name[nameLength - 1] = '\0';
-                    ButtonPressedTime = 0;
-                    // Decrease repeat interval gradually down to the minimum
-                    KeyRepeatInterval =
-                        fmax(KeyRepeatInterval * 0.3f, MIN_REPEAT_INTERVAL);
-                  }
-                }
-                else
-                {
-                  ButtonPressedTime += GetFrameTime();
-
-                  if (ButtonPressedTime >= KeyRepeatInterval &&
-                      sliceTextFieldRect.width <
-                          sliceEntryRect.width - squareButtonSize * 2)
-                  {
-                    int keycode = GetCharPressed();
-
-                    if (keycode == ' ' || isalnum(keycode))
-                    {
-                      Slices[i].Name[nameLength] = tolower(keycode);
-                      Slices[i].Name[nameLength + 1] = '\0';
-
-                      ButtonPressedTime = 0;
-                      KeyRepeatInterval =
-                          fmax(KeyRepeatInterval * 0.2f, MIN_REPEAT_INTERVAL);
-                    }
-                  }
-                }
+#ifdef PLATFORM_ANDROID
+                KeyboardOpen = true;
+#else
+                DrawTextField(sliceTextFieldRect.x, sliceTextFieldRect.y,
+                              sliceTextFieldRect.width,
+                              sliceTextFieldRect.height, maxTextFieldWidth,
+                              FOREGROUND_COLOR, HIGHLIGHT_COLOR,
+                              FOREGROUND_COLOR, FontSize, sliceEntryBorder,
+                              Slices[i].Name);
+#endif
               }
             }
 
@@ -415,11 +525,11 @@ int main()
                     cornerButtonRect.y + cornerButtonRect.height / 2, 45,
                     squareButtonSize, squareButtonSize / 8, RED);
         }
-      }
 
-      if (Clicked)
-      {
-        TypingIndex = -1;
+        if (Clicked)
+        {
+          TypingIndex = -1;
+        }
       }
 
       LogAppend("INFO(Mouse): X %d Y %d PressedX %d PressedY %d \n", MouseX,

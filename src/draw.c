@@ -4,6 +4,7 @@
 
 #include "../raylib/src/raylib.h"
 
+#include "char.c"
 #include "globals.c"
 #include "log.c"
 
@@ -489,6 +490,64 @@ static void DrawButtonGrid(int x,
         takenHeight > availableHeight,
         "ERROR: Button grid %d row takes more than the available height!\n",
         i + 1);
+  }
+}
+
+static void DrawTextField(int x,
+                          int y,
+                          int width,
+                          int height,
+                          int maxWidth,
+                          Color textColor,
+                          Color backgroundColor,
+                          Color borderColor,
+                          int fontSize,
+                          int BorderThickness,
+                          char* buffer)
+{
+  size_t nameLength = strlen(buffer);
+  char displayName[nameLength + 2];
+  snprintf(displayName, nameLength + 2, "%s|", buffer);
+
+  DrawTextBox(x, y, width, height, displayName, fontSize, textColor,
+              backgroundColor, borderColor, BorderThickness, NO_SHADOW);
+
+  if (IsKeyPressed(KEY_BACKSPACE))
+  {
+    buffer[nameLength - 1] = '\0';
+    ButtonPressedTime = 0;
+    KeyRepeatInterval = INITIAL_REPEAT_INTERVAL;
+  }
+  else if (IsKeyDown(KEY_BACKSPACE))
+  {
+    ButtonPressedTime += GetFrameTime();
+
+    if (ButtonPressedTime >= KeyRepeatInterval)
+    {
+      buffer[nameLength - 1] = '\0';
+      ButtonPressedTime = 0;
+      KeyRepeatInterval = fmax(KeyRepeatInterval * INITIAL_REPEAT_INTERVAL,
+                               MIN_REPEAT_INTERVAL);
+    }
+  }
+  else
+  {
+    ButtonPressedTime += GetFrameTime();
+
+    if (ButtonPressedTime >= KeyRepeatInterval && width < maxWidth)
+    {
+      int keycode = GetCharPressed();
+
+      if (keycode == ' ' || isalnum(keycode))
+      {
+        buffer[nameLength] = tolower(keycode);
+        buffer[nameLength + 1] = '\0';
+
+        ButtonPressedTime = 0;
+        KeyRepeatInterval = fmax(KeyRepeatInterval * INITIAL_REPEAT_INTERVAL,
+                                 MIN_REPEAT_INTERVAL);
+      }
+    }
   }
 }
 
