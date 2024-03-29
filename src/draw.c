@@ -283,6 +283,9 @@ static void DrawWheel(float angle,
   DrawTriangle((Vector2){center.x, paddle_bottom - 80},
                (Vector2){center.x - 15, paddle_bottom},
                (Vector2){center.x + 15, paddle_bottom}, RED);
+  DrawTriangleLines((Vector2){center.x, paddle_bottom - 80},
+                    (Vector2){center.x - 15, paddle_bottom},
+                    (Vector2){center.x + 15, paddle_bottom}, FOREGROUND_COLOR);
 }
 
 static void DrawCross(int x,
