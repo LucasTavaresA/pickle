@@ -76,8 +76,6 @@ static const Color GREEN_HOVERED_COLOR = (Color){255, 255, 122, 255};
 
 #ifdef PLATFORM_ANDROID
 static int TouchCount = 0;
-static bool KeyboardOpen = false;
-
 static const float INITIAL_REPEAT_INTERVAL = 0.5f;
 #else
 static const float INITIAL_REPEAT_INTERVAL = 0.3f;
@@ -86,7 +84,6 @@ static const float INITIAL_REPEAT_INTERVAL = 0.3f;
 static const float MIN_REPEAT_INTERVAL = INITIAL_REPEAT_INTERVAL / 10;
 static float ButtonPressedTime = 0;
 static float KeyRepeatInterval = INITIAL_REPEAT_INTERVAL;
-static bool MenuOpened = false;
 static bool ButtonWasPressed = false;
 static bool Clicked = false;
 static Font Fonte;
@@ -108,5 +105,16 @@ static int TypingIndex = -1;
 #define X(name) static Texture2D name##Icon;
 ICON_LIST
 #undef X
+
+enum SceneEnum
+{
+  SCENE_WHEEL,
+  SCENE_MENU,
+#ifdef PLATFORM_ANDROID
+      SCENE_KEYBOARD
+#endif
+};
+
+static int CurrentScene = SCENE_WHEEL;
 
 #endif  // PICKLE_GLOBALS

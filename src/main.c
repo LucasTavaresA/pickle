@@ -26,7 +26,7 @@ void KeyboardPressFunc(int buttonRow, int buttonColumn, void* _args)
   }
   else if (args->KeyPressed == '>')
   {
-    KeyboardOpen = false;
+    CurrentScene = SCENE_MENU;
     TypingIndex = -1;
   }
   else if (args->FieldWidth < args->MaxFieldWidth)
@@ -86,7 +86,7 @@ static void RemoveEntryFunc(int buttonRow, int buttonColumn, void* _args)
 
 static void ToggleMenuFunc(int buttonRow, int buttonColumn, void* _args)
 {
-  MenuOpened = !MenuOpened;
+  CurrentScene = !CurrentScene;
 }
 
 int main()
@@ -117,7 +117,7 @@ int main()
     {
       if (IsKeyPressed(KEY_ESCAPE))
       {
-        MenuOpened = !MenuOpened;
+        CurrentScene = !CurrentScene;
       }
     }
 
@@ -164,25 +164,188 @@ int main()
       float maxTextFieldWidth =
           ScreenWidth - sidePadding * 2 - squareButtonSize * 2;
 
-#ifdef PLATFORM_ANDROID
-      if (KeyboardOpen)
+      switch (CurrentScene)
       {
-        Vector2 sliceNameTextSize = MeasureTextEx(
-            Fonte, Slices[TypingIndex].Name, FontSize * 2, TEXT_SPACING);
-        int keyboardY = ScreenHeight / 1.5;
+        case SCENE_MENU:
+        {
+          {
+            int sliceEntryHeight =
+                (ScreenWidth < ScreenHeight ? ScreenHeight / 6
+                                            : ScreenHeight / 3);
+            int sliceEntryWidth = ScreenWidth - sidePadding * 2;
+            int sliceEntryBorder = ScreenWidth / 500;
 
-        int sliceEntryBorder = ScreenWidth / 500;
+            // draw a button to add a slice
+            if (SlicesCount < COLORS_AMOUNT)
+            {
+              Rectangle addButtonRect = {
+                  sidePadding,
+                  (ScreenWidth < ScreenHeight ? squareButtonSize + Padding
+                                              : 0) +
+                      sliceEntryHeight * SlicesCount,
+                  sliceEntryWidth, sliceEntryHeight};
 
-        Rectangle sliceTextFieldRect = {
-            Padding, keyboardY - sliceNameTextSize.y - Padding,
-            fmax(sliceNameTextSize.x, squareButtonSize) + Padding,
-            sliceNameTextSize.y};
+              DrawButton(addButtonRect.x, addButtonRect.y, addButtonRect.width,
+                         addButtonRect.height, "", FontSize, false,
+                         FOREGROUND_COLOR, BACKGROUND_COLOR, PRESSED_COLOR,
+                         HOVERED_COLOR, FOREGROUND_COLOR, Padding, NO_SHADOW,
+                         NO_ICON, AddEntryFunc, 0, 0, 0);
 
-        DrawTextField(sliceTextFieldRect.x, sliceTextFieldRect.y,
+              // plus sign
+              DrawCross(addButtonRect.x + addButtonRect.width / 2,
+                        addButtonRect.y + addButtonRect.height / 2, 0,
+                        (float)sliceEntryHeight / 2, sliceEntryHeight / 10,
+                        FOREGROUND_COLOR);
+            }
+
+            for (int i = 0; i < SlicesCount; i++)
+            {
+              Vector2 sliceNameTextSize = MeasureTextEx(
+                  Fonte, Slices[i].Name, FontSize * 2, TEXT_SPACING);
+
+              Rectangle sliceEntryRect = {
+                  sidePadding,
+                  (ScreenWidth < ScreenHeight ? squareButtonSize + Padding
+                                              : 0) +
+                      i * sliceEntryHeight,
+                  sliceEntryWidth, sliceEntryHeight};
+
+              // slice entry outline
+              DrawRectangleLinesEx(sliceEntryRect, sliceEntryBorder,
+                                   FOREGROUND_COLOR);
+
+              // draw color palette
+              {
+                ButtonRow palette[PALETTE_ROW_AMOUNT] = {
+                    {PALETTE_ROW_PERCENTAGE, PALETTE_COL_AMOUNT,
+                     (Button[PALETTE_COL_AMOUNT]){{0}}},
+                    {PALETTE_ROW_PERCENTAGE, PALETTE_COL_AMOUNT,
+                     (Button[PALETTE_COL_AMOUNT]){{0}}}};
+                int paletteX = sidePadding + Padding;
+                int paletteY =
+                    i * sliceEntryHeight + sliceNameTextSize.y + Padding * 2 +
+                    (ScreenWidth < ScreenHeight ? squareButtonSize + Padding
+                                                : 0);
+                int paletteHeight =
+                    sliceEntryHeight - sliceNameTextSize.y - Padding * 4;
+                int paletteWidth = sliceEntryWidth - Padding - squareButtonSize;
+
+                for (int c = 0; c < COLORS_AMOUNT; c++)
+                {
+                  palette[c / (COLORS_AMOUNT / PALETTE_ROW_AMOUNT)]
+                      .Columns[c % (COLORS_AMOUNT / PALETTE_ROW_AMOUNT)] =
+                      (Button){PALETTE_COL_PERCENTAGE,
+                               "",
+                               FontSize,
+                               false,
+                               FOREGROUND_COLOR,
+                               COLORS[c],
+                               COLORS[c],
+                               COLORS[c],
+                               GetContrastedTextColor(COLORS[c]),
+                               c == Slices[i].Color ? Padding : 1,
+                               NO_SHADOW,
+                               NO_ICON,
+                               ColorPickFunc,
+                               &(ColorPickArgs){i}};
+                }
+
+                DrawButtonGrid(paletteX, paletteY, paletteWidth, paletteHeight,
+                               Padding, palette, PALETTE_ROW_AMOUNT);
+              }
+
+              // draw editable text box
+              {
+                Rectangle sliceTextFieldRect = {
+                    sidePadding + Padding,
+                    (ScreenWidth < ScreenHeight ? squareButtonSize + Padding
+                                                : 0) +
+                        i * sliceEntryHeight + Padding,
+                    fmax(sliceNameTextSize.x, squareButtonSize) + Padding,
+                    sliceNameTextSize.y};
+
+                if (TypingIndex != i)
+                {
+                  DrawButton(
+                      sliceTextFieldRect.x, sliceTextFieldRect.y,
                       sliceTextFieldRect.width, sliceTextFieldRect.height,
-                      maxTextFieldWidth, FOREGROUND_COLOR, HIGHLIGHT_COLOR,
-                      FOREGROUND_COLOR, FontSize, Padding,
-                      Slices[TypingIndex].Name);
+                      Slices[i].Name, FontSize, false, FOREGROUND_COLOR,
+                      BACKGROUND_COLOR, PRESSED_COLOR, HOVERED_COLOR,
+                      FOREGROUND_COLOR, sliceEntryBorder, NO_SHADOW, NO_ICON,
+                      SelectTextFieldFunc, 0, 0, &(SelectTextFieldArgs){i});
+                }
+                else
+                {
+#ifdef PLATFORM_ANDROID
+                  CurrentScene = SCENE_KEYBOARD;
+#else
+                  DrawTextField(sliceTextFieldRect.x, sliceTextFieldRect.y,
+                                sliceTextFieldRect.width,
+                                sliceTextFieldRect.height, maxTextFieldWidth,
+                                FOREGROUND_COLOR, HIGHLIGHT_COLOR,
+                                FOREGROUND_COLOR, FontSize, sliceEntryBorder,
+                                Slices[i].Name);
+#endif
+                }
+              }
+
+              // draw a trash button to delete slices
+              {
+                Rectangle trashButtonRect = {
+                    ScreenWidth - sidePadding - squareButtonSize - Padding,
+                    (ScreenWidth < ScreenHeight ? squareButtonSize + Padding
+                                                : 0) +
+                        i * sliceEntryHeight + Padding,
+                    squareButtonSize, squareButtonSize};
+
+                DrawButton(trashButtonRect.x, trashButtonRect.y,
+                           trashButtonRect.width, trashButtonRect.height, "",
+                           FontSize, false, RED, BACKGROUND_COLOR,
+                           RED_PRESSED_COLOR, RED_HOVERED_COLOR, RED, Padding,
+                           NO_SHADOW, TrashIcon, RemoveEntryFunc, 0, 0,
+                           &(RemoveEntryArgs){i});
+              }
+            }
+          }
+
+          // Draw a close button
+          {
+            DrawButton(cornerButtonRect.x, cornerButtonRect.y,
+                       cornerButtonRect.width, cornerButtonRect.height, "",
+                       FontSize, false, RED, BACKGROUND_COLOR,
+                       RED_PRESSED_COLOR, RED_HOVERED_COLOR, RED, Padding,
+                       NO_SHADOW, NO_ICON, ToggleMenuFunc, 0, 0, 0);
+
+            // x sign
+            DrawCross(cornerButtonRect.x + cornerButtonRect.width / 2,
+                      cornerButtonRect.y + cornerButtonRect.height / 2, 45,
+                      squareButtonSize, squareButtonSize / 8, RED);
+          }
+
+          if (Clicked)
+          {
+            TypingIndex = -1;
+          }
+        }
+        break;
+#ifdef PLATFORM_ANDROID
+        case SCENE_KEYBOARD:
+        {
+          Vector2 sliceNameTextSize = MeasureTextEx(
+              Fonte, Slices[TypingIndex].Name, FontSize * 2, TEXT_SPACING);
+          int keyboardY = ScreenHeight / 1.5;
+          int sliceEntryBorder = ScreenWidth / 500;
+
+          Rectangle sliceTextFieldRect = {
+              Padding, keyboardY - sliceNameTextSize.y - Padding,
+              fmax(sliceNameTextSize.x, squareButtonSize) + Padding,
+              sliceNameTextSize.y};
+
+          DrawTextField(sliceTextFieldRect.x, sliceTextFieldRect.y,
+                        sliceTextFieldRect.width, sliceTextFieldRect.height,
+                        maxTextFieldWidth, FOREGROUND_COLOR, HIGHLIGHT_COLOR,
+                        FOREGROUND_COLOR, FontSize, Padding,
+                        Slices[TypingIndex].Name);
 
 #define KEYBOARD_BUTTON(key, widthPercentage)                              \
   (Button)                                                                 \
@@ -197,275 +360,117 @@ int main()
           sliceTextFieldRect.width, maxTextFieldWidth                      \
     }                                                                      \
   }
-        ButtonRow keyboard[KEYBOARD_ROWS] = {
-            {
-                KEYBOARD_ROW_PERCENTAGE,
-                10,
-                (Button[10]){
-                    KEYBOARD_BUTTON("q", 100 / 10),
-                    KEYBOARD_BUTTON("w", 100 / 10),
-                    KEYBOARD_BUTTON("e", 100 / 10),
-                    KEYBOARD_BUTTON("r", 100 / 10),
-                    KEYBOARD_BUTTON("t", 100 / 10),
-                    KEYBOARD_BUTTON("y", 100 / 10),
-                    KEYBOARD_BUTTON("u", 100 / 10),
-                    KEYBOARD_BUTTON("i", 100 / 10),
-                    KEYBOARD_BUTTON("o", 100 / 10),
-                    KEYBOARD_BUTTON("p", 100 / 10),
-                },
-            },
-            {
-                KEYBOARD_ROW_PERCENTAGE,
-                9,
-                (Button[9]){
-                    KEYBOARD_BUTTON("a", 100 / 9),
-                    KEYBOARD_BUTTON("s", 100 / 9),
-                    KEYBOARD_BUTTON("d", 100 / 9),
-                    KEYBOARD_BUTTON("f", 100 / 9),
-                    KEYBOARD_BUTTON("g", 100 / 9),
-                    KEYBOARD_BUTTON("h", 100 / 9),
-                    KEYBOARD_BUTTON("j", 100 / 9),
-                    KEYBOARD_BUTTON("k", 100 / 9),
-                    KEYBOARD_BUTTON("l", 100 / 9),
-                },
-            },
-            {
-                KEYBOARD_ROW_PERCENTAGE,
-                8,
-                (Button[8]){
-                    KEYBOARD_BUTTON("z", 100 / 8),
-                    KEYBOARD_BUTTON("x", 100 / 8),
-                    KEYBOARD_BUTTON("c", 100 / 8),
-                    KEYBOARD_BUTTON("v", 100 / 8),
-                    KEYBOARD_BUTTON("b", 100 / 8),
-                    KEYBOARD_BUTTON("n", 100 / 8),
-                    KEYBOARD_BUTTON("m", 100 / 8),
-                    (Button){
-                        .WidthPercentage = 100 / 8,
-                        .Text = "<-",
-                        .BorderThickness = 1,
-                        .RepeatPresses = true,
-                        .TextColor = RED,
-                        .BackgroundColor = HIGHLIGHT_COLOR,
-                        .PressedColor = RED_PRESSED_COLOR,
-                        .HoveredColor = RED_HOVERED_COLOR,
-                        .BorderColor = RED,
-                        .Callback = KeyboardPressFunc,
-                        .CallbackArgs =
-                            &(KeyboardPressArgs){
-                                Slices[TypingIndex].Name,
-                                strlen(Slices[TypingIndex].Name), '<',
-                                sliceTextFieldRect.width, maxTextFieldWidth}},
-                },
-            },
-            {KEYBOARD_ROW_PERCENTAGE, 3,
-             (Button[3]){
-                 (Button){100 / 3},
-                 KEYBOARD_BUTTON(" ", 100 / 3),
-             }},
-        };
+          ButtonRow keyboard[KEYBOARD_ROWS] = {
+              {
+                  KEYBOARD_ROW_PERCENTAGE,
+                  10,
+                  (Button[10]){
+                      KEYBOARD_BUTTON("q", 100 / 10),
+                      KEYBOARD_BUTTON("w", 100 / 10),
+                      KEYBOARD_BUTTON("e", 100 / 10),
+                      KEYBOARD_BUTTON("r", 100 / 10),
+                      KEYBOARD_BUTTON("t", 100 / 10),
+                      KEYBOARD_BUTTON("y", 100 / 10),
+                      KEYBOARD_BUTTON("u", 100 / 10),
+                      KEYBOARD_BUTTON("i", 100 / 10),
+                      KEYBOARD_BUTTON("o", 100 / 10),
+                      KEYBOARD_BUTTON("p", 100 / 10),
+                  },
+              },
+              {
+                  KEYBOARD_ROW_PERCENTAGE,
+                  9,
+                  (Button[9]){
+                      KEYBOARD_BUTTON("a", 100 / 9),
+                      KEYBOARD_BUTTON("s", 100 / 9),
+                      KEYBOARD_BUTTON("d", 100 / 9),
+                      KEYBOARD_BUTTON("f", 100 / 9),
+                      KEYBOARD_BUTTON("g", 100 / 9),
+                      KEYBOARD_BUTTON("h", 100 / 9),
+                      KEYBOARD_BUTTON("j", 100 / 9),
+                      KEYBOARD_BUTTON("k", 100 / 9),
+                      KEYBOARD_BUTTON("l", 100 / 9),
+                  },
+              },
+              {
+                  KEYBOARD_ROW_PERCENTAGE,
+                  8,
+                  (Button[8]){
+                      KEYBOARD_BUTTON("z", 100 / 8),
+                      KEYBOARD_BUTTON("x", 100 / 8),
+                      KEYBOARD_BUTTON("c", 100 / 8),
+                      KEYBOARD_BUTTON("v", 100 / 8),
+                      KEYBOARD_BUTTON("b", 100 / 8),
+                      KEYBOARD_BUTTON("n", 100 / 8),
+                      KEYBOARD_BUTTON("m", 100 / 8),
+                      (Button){
+                          .WidthPercentage = 100 / 8,
+                          .Text = "<-",
+                          .BorderThickness = 1,
+                          .RepeatPresses = true,
+                          .TextColor = RED,
+                          .BackgroundColor = HIGHLIGHT_COLOR,
+                          .PressedColor = RED_PRESSED_COLOR,
+                          .HoveredColor = RED_HOVERED_COLOR,
+                          .BorderColor = RED,
+                          .Callback = KeyboardPressFunc,
+                          .CallbackArgs =
+                              &(KeyboardPressArgs){
+                                  Slices[TypingIndex].Name,
+                                  strlen(Slices[TypingIndex].Name), '<',
+                                  sliceTextFieldRect.width, maxTextFieldWidth}},
+                  },
+              },
+              {KEYBOARD_ROW_PERCENTAGE, 3,
+               (Button[3]){
+                   (Button){100 / 3},
+                   KEYBOARD_BUTTON(" ", 100 / 3),
+               }},
+          };
 #undef KEYBOARD_BUTTON
 
-        DrawButtonGrid(0, keyboardY, ScreenWidth, ScreenHeight - keyboardY, 0,
-                       keyboard, KEYBOARD_ROWS);
+          DrawButtonGrid(0, keyboardY, ScreenWidth, ScreenHeight - keyboardY, 0,
+                         keyboard, KEYBOARD_ROWS);
 
-        DrawButton(cornerButtonRect.x, sliceTextFieldRect.y,
-                   cornerButtonRect.width, sliceTextFieldRect.height, ">",
-                   FontSize, false, GREEN, HIGHLIGHT_COLOR, GREEN_PRESSED_COLOR,
-                   GREEN_HOVERED_COLOR, GREEN, 1, NO_SHADOW, NO_ICON,
-                   KeyboardPressFunc, 0, 0,
-                   &(KeyboardPressArgs){Slices[TypingIndex].Name,
-                                        strlen(Slices[TypingIndex].Name), '>'});
-      }
-      // TODO(LucasTA): Reverse this to if (MenuOpened) {}
-      // maybe have a 'Scene' enum and use a switch case
-      else
+          DrawButton(
+              cornerButtonRect.x, sliceTextFieldRect.y, cornerButtonRect.width,
+              sliceTextFieldRect.height, ">", FontSize, false, GREEN,
+              HIGHLIGHT_COLOR, GREEN_PRESSED_COLOR, GREEN_HOVERED_COLOR, GREEN,
+              1, NO_SHADOW, NO_ICON, KeyboardPressFunc, 0, 0,
+              &(KeyboardPressArgs){Slices[TypingIndex].Name,
+                                   strlen(Slices[TypingIndex].Name), '>'});
+        }
+        break;
 #endif
-          if (!MenuOpened)
-      {
-        // Draw the wheel
-        {
-          int wheelRadius =
-              (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) / 2 -
-              ScreenPadding;
-
-          if (SlicesCount == 0)
+        default:
+          // Draw the wheel
           {
-            DrawWheel(0, wheelRadius, DEFAULT_SLICES, COLORS_AMOUNT);
-          }
-          else
-          {
-            DrawWheel(0, wheelRadius, Slices, SlicesCount);
-          }
-        }
-
-        // Draw a menu button
-        {
-          DrawButton(cornerButtonRect.x, cornerButtonRect.y,
-                     cornerButtonRect.width, cornerButtonRect.height, "",
-                     FontSize, false, FOREGROUND_COLOR, BACKGROUND_COLOR,
-                     PRESSED_COLOR, HOVERED_COLOR, FOREGROUND_COLOR, Padding,
-                     NO_SHADOW, MenuIcon, ToggleMenuFunc, 0, 0, 0);
-        }
-      }
-      else
-      {
-        // draw the slices menu
-        {
-          int sliceEntryHeight =
-              (ScreenWidth < ScreenHeight ? ScreenHeight / 6
-                                          : ScreenHeight / 3);
-          int sliceEntryWidth = ScreenWidth - sidePadding * 2;
-          int sliceEntryBorder = ScreenWidth / 500;
-
-          // draw a button to add a slice
-          if (SlicesCount < COLORS_AMOUNT)
-          {
-            Rectangle addButtonRect = {
-                sidePadding,
-                (ScreenWidth < ScreenHeight ? squareButtonSize + Padding : 0) +
-                    sliceEntryHeight * SlicesCount,
-                sliceEntryWidth, sliceEntryHeight};
-
-            DrawButton(addButtonRect.x, addButtonRect.y, addButtonRect.width,
-                       addButtonRect.height, "", FontSize, false,
-                       FOREGROUND_COLOR, BACKGROUND_COLOR, PRESSED_COLOR,
-                       HOVERED_COLOR, FOREGROUND_COLOR, Padding, NO_SHADOW,
-                       NO_ICON, AddEntryFunc, 0, 0, 0);
-
-            // plus sign
-            DrawCross(addButtonRect.x + addButtonRect.width / 2,
-                      addButtonRect.y + addButtonRect.height / 2, 0,
-                      (float)sliceEntryHeight / 2, sliceEntryHeight / 10,
-                      FOREGROUND_COLOR);
-          }
-
-          for (int i = 0; i < SlicesCount; i++)
-          {
-            Vector2 sliceNameTextSize = MeasureTextEx(
-                Fonte, Slices[i].Name, FontSize * 2, TEXT_SPACING);
-
-            Rectangle sliceEntryRect = {
-                sidePadding,
-                (ScreenWidth < ScreenHeight ? squareButtonSize + Padding : 0) +
-                    i * sliceEntryHeight,
-                sliceEntryWidth, sliceEntryHeight};
-
-            // slice entry outline
-            DrawRectangleLinesEx(sliceEntryRect, sliceEntryBorder,
-                                 FOREGROUND_COLOR);
-
-            // draw color palette
             {
-              ButtonRow palette[PALETTE_ROW_AMOUNT] = {
-                  {PALETTE_ROW_PERCENTAGE, PALETTE_COL_AMOUNT,
-                   (Button[PALETTE_COL_AMOUNT]){{0}}},
-                  {PALETTE_ROW_PERCENTAGE, PALETTE_COL_AMOUNT,
-                   (Button[PALETTE_COL_AMOUNT]){{0}}}};
-              int paletteX = sidePadding + Padding;
-              int paletteY =
-                  i * sliceEntryHeight + sliceNameTextSize.y + Padding * 2 +
-                  (ScreenWidth < ScreenHeight ? squareButtonSize + Padding : 0);
-              int paletteHeight =
-                  sliceEntryHeight - sliceNameTextSize.y - Padding * 4;
-              int paletteWidth = sliceEntryWidth - Padding - squareButtonSize;
+              int wheelRadius =
+                  (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) /
+                      2 -
+                  ScreenPadding;
 
-              for (int c = 0; c < COLORS_AMOUNT; c++)
+              if (SlicesCount == 0)
               {
-                palette[c / (COLORS_AMOUNT / PALETTE_ROW_AMOUNT)]
-                    .Columns[c % (COLORS_AMOUNT / PALETTE_ROW_AMOUNT)] =
-                    (Button){PALETTE_COL_PERCENTAGE,
-                             "",
-                             FontSize,
-                             false,
-                             FOREGROUND_COLOR,
-                             COLORS[c],
-                             COLORS[c],
-                             COLORS[c],
-                             GetContrastedTextColor(COLORS[c]),
-                             c == Slices[i].Color ? Padding : 1,
-                             NO_SHADOW,
-                             NO_ICON,
-                             ColorPickFunc,
-                             &(ColorPickArgs){i}};
-              }
-
-              DrawButtonGrid(paletteX, paletteY, paletteWidth, paletteHeight,
-                             Padding, palette, PALETTE_ROW_AMOUNT);
-            }
-
-            // draw editable text box
-            {
-              Rectangle sliceTextFieldRect = {
-                  sidePadding + Padding,
-                  (ScreenWidth < ScreenHeight ? squareButtonSize + Padding
-                                              : 0) +
-                      i * sliceEntryHeight + Padding,
-                  fmax(sliceNameTextSize.x, squareButtonSize) + Padding,
-                  sliceNameTextSize.y};
-
-              if (TypingIndex != i)
-              {
-                DrawButton(sliceTextFieldRect.x, sliceTextFieldRect.y,
-                           sliceTextFieldRect.width, sliceTextFieldRect.height,
-                           Slices[i].Name, FontSize, false, FOREGROUND_COLOR,
-                           BACKGROUND_COLOR, PRESSED_COLOR, HOVERED_COLOR,
-                           FOREGROUND_COLOR, sliceEntryBorder, NO_SHADOW,
-                           NO_ICON, SelectTextFieldFunc, 0, 0,
-                           &(SelectTextFieldArgs){i});
+                DrawWheel(0, wheelRadius, DEFAULT_SLICES, COLORS_AMOUNT);
               }
               else
               {
-#ifdef PLATFORM_ANDROID
-                KeyboardOpen = true;
-#else
-                DrawTextField(sliceTextFieldRect.x, sliceTextFieldRect.y,
-                              sliceTextFieldRect.width,
-                              sliceTextFieldRect.height, maxTextFieldWidth,
-                              FOREGROUND_COLOR, HIGHLIGHT_COLOR,
-                              FOREGROUND_COLOR, FontSize, sliceEntryBorder,
-                              Slices[i].Name);
-#endif
+                DrawWheel(0, wheelRadius, Slices, SlicesCount);
               }
             }
 
-            // draw a trash button to delete slices
+            // Draw a menu button
             {
-              Rectangle trashButtonRect = {
-                  ScreenWidth - sidePadding - squareButtonSize - Padding,
-                  (ScreenWidth < ScreenHeight ? squareButtonSize + Padding
-                                              : 0) +
-                      i * sliceEntryHeight + Padding,
-                  squareButtonSize, squareButtonSize};
-
-              DrawButton(trashButtonRect.x, trashButtonRect.y,
-                         trashButtonRect.width, trashButtonRect.height, "",
-                         FontSize, false, RED, BACKGROUND_COLOR,
-                         RED_PRESSED_COLOR, RED_HOVERED_COLOR, RED, Padding,
-                         NO_SHADOW, TrashIcon, RemoveEntryFunc, 0, 0,
-                         &(RemoveEntryArgs){i});
+              DrawButton(cornerButtonRect.x, cornerButtonRect.y,
+                         cornerButtonRect.width, cornerButtonRect.height, "",
+                         FontSize, false, FOREGROUND_COLOR, BACKGROUND_COLOR,
+                         PRESSED_COLOR, HOVERED_COLOR, FOREGROUND_COLOR,
+                         Padding, NO_SHADOW, MenuIcon, ToggleMenuFunc, 0, 0, 0);
             }
           }
-        }
-
-        // Draw a close button
-        {
-          DrawButton(cornerButtonRect.x, cornerButtonRect.y,
-                     cornerButtonRect.width, cornerButtonRect.height, "",
-                     FontSize, false, RED, BACKGROUND_COLOR, RED_PRESSED_COLOR,
-                     RED_HOVERED_COLOR, RED, Padding, NO_SHADOW, NO_ICON,
-                     ToggleMenuFunc, 0, 0, 0);
-
-          // x sign
-          DrawCross(cornerButtonRect.x + cornerButtonRect.width / 2,
-                    cornerButtonRect.y + cornerButtonRect.height / 2, 45,
-                    squareButtonSize, squareButtonSize / 8, RED);
-        }
-
-        if (Clicked)
-        {
-          TypingIndex = -1;
-        }
+          break;
       }
 
       LogAppend("INFO(Mouse): X %d Y %d PressedX %d PressedY %d \n", MouseX,
