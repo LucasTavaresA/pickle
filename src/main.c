@@ -69,7 +69,7 @@ static void ColorPickFunc(int buttonRow, int buttonColumn, void* _args)
 
 static void AddEntryFunc(int buttonRow, int buttonColumn, void* _args)
 {
-  Slices[SlicesCount].Name = strdup(DEFAULT_SLICES[SlicesCount].Name);
+  strncpy(Slices[SlicesCount].Name, DEFAULT_SLICES[SlicesCount].Name, SLICE_NAME_SIZE);
   Slices[SlicesCount].Color = DEFAULT_SLICES[SlicesCount].Color;
   SlicesCount++;
 }

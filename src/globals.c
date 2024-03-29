@@ -41,9 +41,10 @@ enum ColorEnum
 static const Color COLORS[] = {COLOR_LIST};
 #undef X
 
+#define SLICE_NAME_SIZE 256
 typedef struct
 {
-  char* Name;
+  char Name[SLICE_NAME_SIZE];
   int Color;
 } Slice;
 
