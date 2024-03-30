@@ -3,6 +3,7 @@
 #include "draw.c"
 #include "globals.c"
 #include "log.c"
+#include "math.c"
 
 #ifdef PLATFORM_ANDROID
 typedef struct
@@ -145,6 +146,9 @@ int main()
         MousePressedY = MouseY;
         Clicked = true;
       }
+
+      // TODO(LucasTA): Move Slices menu using touch
+      MouseScroll = GetMouseWheelMove();
     }
 
     // Draw
@@ -157,7 +161,7 @@ int main()
       Rectangle cornerButtonRect = {ScreenWidth - squareButtonSize - Padding,
                                     Padding, squareButtonSize,
                                     squareButtonSize};
-      int sidePadding = (ScreenWidth < ScreenHeight ? 0 : ScreenWidth / 6);
+      int sidePadding = squareButtonSize + Padding * 2;
       float maxTextFieldWidth =
           ScreenWidth - sidePadding * 2 - squareButtonSize * 2;
 
@@ -166,19 +170,23 @@ int main()
         case SCENE_MENU:
         {
           {
+            // TODO(LucasTA): set background of slice entry on its current
+            // color, or set its textbox background
             int sliceEntryHeight =
                 (ScreenWidth < ScreenHeight ? ScreenHeight / 6
                                             : ScreenHeight / 3);
             int sliceEntryWidth = ScreenWidth - sidePadding * 2;
+            SliceListOffset =
+                clamp(SliceListOffset + MouseScroll * 32,
+                      fmin(COLORS_AMOUNT - 3, fmax(0, SlicesCount - 2)) *
+                          -sliceEntryHeight,
+                      0);
 
             // draw a button to add a slice
             if (SlicesCount < COLORS_AMOUNT)
             {
               Rectangle addButtonRect = {
-                  sidePadding,
-                  (ScreenWidth < ScreenHeight ? squareButtonSize + Padding
-                                              : 0) +
-                      sliceEntryHeight * SlicesCount,
+                  sidePadding, SliceListOffset + sliceEntryHeight * SlicesCount,
                   sliceEntryWidth, sliceEntryHeight};
 
               DrawButton(addButtonRect.x, addButtonRect.y, addButtonRect.width,
@@ -200,10 +208,7 @@ int main()
                   Fonte, Slices[i].Name, FontSize * 2, TEXT_SPACING);
 
               Rectangle sliceEntryRect = {
-                  sidePadding,
-                  (ScreenWidth < ScreenHeight ? squareButtonSize + Padding
-                                              : 0) +
-                      i * sliceEntryHeight,
+                  sidePadding, SliceListOffset + i * sliceEntryHeight,
                   sliceEntryWidth, sliceEntryHeight};
 
               // slice entry outline
@@ -217,10 +222,8 @@ int main()
                     {PALETTE_ROW_PERCENTAGE, PALETTE_COL_AMOUNT,
                      (Button[PALETTE_COL_AMOUNT]){{0}}}};
                 int paletteX = sidePadding + Padding;
-                int paletteY =
-                    i * sliceEntryHeight + sliceNameTextSize.y + Padding * 2 +
-                    (ScreenWidth < ScreenHeight ? squareButtonSize + Padding
-                                                : 0);
+                int paletteY = SliceListOffset + i * sliceEntryHeight +
+                               sliceNameTextSize.y + Padding * 2;
                 int paletteHeight =
                     sliceEntryHeight - sliceNameTextSize.y - Padding * 4;
                 int paletteWidth = sliceEntryWidth - Padding - squareButtonSize;
@@ -253,9 +256,7 @@ int main()
               {
                 Rectangle sliceTextFieldRect = {
                     sidePadding + Padding,
-                    (ScreenWidth < ScreenHeight ? squareButtonSize + Padding
-                                                : 0) +
-                        i * sliceEntryHeight + Padding,
+                    SliceListOffset + i * sliceEntryHeight + Padding,
                     fmax(sliceNameTextSize.x, squareButtonSize) + Padding,
                     sliceNameTextSize.y};
 
@@ -287,9 +288,7 @@ int main()
               {
                 Rectangle trashButtonRect = {
                     ScreenWidth - sidePadding - squareButtonSize - Padding,
-                    (ScreenWidth < ScreenHeight ? squareButtonSize + Padding
-                                                : 0) +
-                        i * sliceEntryHeight + Padding,
+                    SliceListOffset + i * sliceEntryHeight + Padding,
                     squareButtonSize, squareButtonSize};
 
                 DrawButton(trashButtonRect.x, trashButtonRect.y,

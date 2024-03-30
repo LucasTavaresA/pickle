@@ -345,6 +345,7 @@ static void DrawCross(int x,
                              MIN_REPEAT_INTERVAL);                           \
   }
 
+// FIXME(LucasTA): Don't hover two buttons at once
 static void DrawButton(int x,
                        int y,
                        int width,
