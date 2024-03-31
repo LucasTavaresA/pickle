@@ -125,8 +125,8 @@ int main()
       ScreenWidth = GetScreenWidth();
       ScreenHeight = GetScreenHeight();
       FontSize = (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) / 25;
-      Padding = ScreenWidth / 250;
       Border = fmax((float)ScreenWidth / 500, 1);
+      Padding = Border * 2;
     }
 
     // update mouse and touch information
