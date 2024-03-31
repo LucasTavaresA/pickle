@@ -85,7 +85,7 @@ static const float MIN_REPEAT_INTERVAL = INITIAL_REPEAT_INTERVAL / 10;
 static float ButtonPressedTime = 0;
 static float KeyRepeatInterval = INITIAL_REPEAT_INTERVAL;
 static float MouseScroll = 0;
-static float SliceListOffset = 0;
+static float MenuScrollOffset = 0;
 static bool ButtonWasPressed = false;
 static bool Clicked = false;
 static Font Fonte;
@@ -113,7 +113,7 @@ enum SceneEnum
   SCENE_WHEEL,
   SCENE_MENU,
 #ifdef PLATFORM_ANDROID
-      SCENE_KEYBOARD
+  SCENE_KEYBOARD
 #endif
 };
 

@@ -161,9 +161,14 @@ int main()
       Rectangle cornerButtonRect = {ScreenWidth - squareButtonSize - Padding,
                                     Padding, squareButtonSize,
                                     squareButtonSize};
-      int sidePadding = squareButtonSize + Padding * 2;
-      float maxTextFieldWidth =
-          ScreenWidth - sidePadding * 2 - squareButtonSize * 2;
+      int sidePadding = squareButtonSize + Padding;
+      int menuX = (ScreenWidth < ScreenHeight ? 0 : squareButtonSize + Padding);
+      int menuEntryWidth =
+          ScreenWidth -
+          (ScreenWidth < ScreenHeight ? sidePadding : sidePadding * 2);
+      int menuEntryHeight =
+          (ScreenWidth < ScreenHeight ? ScreenHeight / 6 : ScreenHeight / 3);
+      int maxTextFieldWidth = menuEntryWidth - sidePadding * 2;
 
       switch (CurrentScene)
       {
@@ -172,33 +177,26 @@ int main()
           {
             // TODO(LucasTA): set background of slice entry on its current
             // color, or set its textbox background
-            int sliceEntryHeight =
-                (ScreenWidth < ScreenHeight ? ScreenHeight / 6
-                                            : ScreenHeight / 3);
-            int sliceEntryWidth = ScreenWidth - sidePadding * 2;
-            SliceListOffset =
-                clamp(SliceListOffset + MouseScroll * 32,
+            MenuScrollOffset =
+                clamp(MenuScrollOffset + MouseScroll * 32,
                       fmin(COLORS_AMOUNT - 3, fmax(0, SlicesCount - 2)) *
-                          -sliceEntryHeight,
+                          -menuEntryHeight,
                       0);
 
             // draw a button to add a slice
             if (SlicesCount < COLORS_AMOUNT)
             {
-              Rectangle addButtonRect = {
-                  sidePadding, SliceListOffset + sliceEntryHeight * SlicesCount,
-                  sliceEntryWidth, sliceEntryHeight};
+              int addButtonY = MenuScrollOffset + menuEntryHeight * SlicesCount;
 
-              DrawButton(addButtonRect.x, addButtonRect.y, addButtonRect.width,
-                         addButtonRect.height, "", FontSize, false,
-                         FOREGROUND_COLOR, BACKGROUND_COLOR, PRESSED_COLOR,
-                         HOVERED_COLOR, FOREGROUND_COLOR, Border, NO_SHADOW,
-                         NO_ICON, AddEntryFunc, 0, 0, 0);
+              DrawButton(menuX, addButtonY, menuEntryWidth, menuEntryHeight, "",
+                         FontSize, false, FOREGROUND_COLOR, BACKGROUND_COLOR,
+                         PRESSED_COLOR, HOVERED_COLOR, FOREGROUND_COLOR, Border,
+                         NO_SHADOW, NO_ICON, AddEntryFunc, 0, 0, 0);
 
               // plus sign
-              DrawCross(addButtonRect.x + addButtonRect.width / 2,
-                        addButtonRect.y + addButtonRect.height / 2, 0,
-                        (float)sliceEntryHeight / 2, sliceEntryHeight / 10,
+              DrawCross(menuX + menuEntryWidth / 2,
+                        addButtonY + menuEntryHeight / 2, 0,
+                        (float)menuEntryHeight / 2, menuEntryHeight / 10,
                         FOREGROUND_COLOR);
             }
 
@@ -206,13 +204,13 @@ int main()
             {
               Vector2 sliceNameTextSize = MeasureTextEx(
                   Fonte, Slices[i].Name, FontSize * 2, TEXT_SPACING);
+              int menuEntryY = MenuScrollOffset + i * menuEntryHeight;
 
-              Rectangle sliceEntryRect = {
-                  sidePadding, SliceListOffset + i * sliceEntryHeight,
-                  sliceEntryWidth, sliceEntryHeight};
+              Rectangle menuEntryRect = {menuX, menuEntryY, menuEntryWidth,
+                                         menuEntryHeight};
 
               // slice entry outline
-              DrawRectangleLinesEx(sliceEntryRect, Border, FOREGROUND_COLOR);
+              DrawRectangleLinesEx(menuEntryRect, Border, FOREGROUND_COLOR);
 
               // draw color palette
               {
@@ -221,12 +219,11 @@ int main()
                      (Button[PALETTE_COL_AMOUNT]){{0}}},
                     {PALETTE_ROW_PERCENTAGE, PALETTE_COL_AMOUNT,
                      (Button[PALETTE_COL_AMOUNT]){{0}}}};
-                int paletteX = sidePadding + Padding;
-                int paletteY = SliceListOffset + i * sliceEntryHeight +
-                               sliceNameTextSize.y + Padding * 2;
+                int paletteX = menuX + Padding;
+                int paletteY = menuEntryY + sliceNameTextSize.y + Padding * 2;
                 int paletteHeight =
-                    sliceEntryHeight - sliceNameTextSize.y - Padding * 4;
-                int paletteWidth = sliceEntryWidth - Padding - squareButtonSize;
+                    menuEntryHeight - sliceNameTextSize.y - Padding * 4;
+                int paletteWidth = menuEntryWidth - sidePadding - Padding;
 
                 for (int c = 0; c < COLORS_AMOUNT; c++)
                 {
@@ -254,21 +251,21 @@ int main()
 
               // draw editable text box
               {
-                Rectangle sliceTextFieldRect = {
-                    sidePadding + Padding,
-                    SliceListOffset + i * sliceEntryHeight + Padding,
+                Rectangle menuEntryTextFieldRect = {
+                    menuX + Padding, menuEntryY + Padding,
                     fmax(sliceNameTextSize.x, squareButtonSize) + Padding,
                     sliceNameTextSize.y};
 
                 if (TypingIndex != i)
                 {
-                  DrawButton(
-                      sliceTextFieldRect.x, sliceTextFieldRect.y,
-                      sliceTextFieldRect.width, sliceTextFieldRect.height,
-                      Slices[i].Name, FontSize, false, FOREGROUND_COLOR,
-                      BACKGROUND_COLOR, PRESSED_COLOR, HOVERED_COLOR,
-                      FOREGROUND_COLOR, Border, NO_SHADOW, NO_ICON,
-                      SelectTextFieldFunc, 0, 0, &(SelectTextFieldArgs){i});
+                  DrawButton(menuEntryTextFieldRect.x, menuEntryTextFieldRect.y,
+                             menuEntryTextFieldRect.width,
+                             menuEntryTextFieldRect.height, Slices[i].Name,
+                             FontSize, false, FOREGROUND_COLOR,
+                             BACKGROUND_COLOR, PRESSED_COLOR, HOVERED_COLOR,
+                             FOREGROUND_COLOR, Border, NO_SHADOW, NO_ICON,
+                             SelectTextFieldFunc, 0, 0,
+                             &(SelectTextFieldArgs){i});
                 }
                 else
                 {
@@ -276,10 +273,11 @@ int main()
                   CurrentScene = SCENE_KEYBOARD;
 #else
                   DrawTextField(
-                      sliceTextFieldRect.x, sliceTextFieldRect.y,
-                      sliceTextFieldRect.width, sliceTextFieldRect.height,
-                      maxTextFieldWidth, FOREGROUND_COLOR, HIGHLIGHT_COLOR,
-                      FOREGROUND_COLOR, FontSize, Border, Slices[i].Name);
+                      menuEntryTextFieldRect.x, menuEntryTextFieldRect.y,
+                      menuEntryTextFieldRect.width,
+                      menuEntryTextFieldRect.height, maxTextFieldWidth,
+                      FOREGROUND_COLOR, HIGHLIGHT_COLOR, FOREGROUND_COLOR,
+                      FontSize, Border, Slices[i].Name);
 #endif
                 }
               }
@@ -287,8 +285,7 @@ int main()
               // draw a trash button to delete slices
               {
                 Rectangle trashButtonRect = {
-                    ScreenWidth - sidePadding - squareButtonSize - Padding,
-                    SliceListOffset + i * sliceEntryHeight + Padding,
+                    menuX + menuEntryWidth - sidePadding, menuEntryY + Padding,
                     squareButtonSize, squareButtonSize};
 
                 DrawButton(trashButtonRect.x, trashButtonRect.y,
@@ -328,16 +325,15 @@ int main()
               Fonte, Slices[TypingIndex].Name, FontSize * 2, TEXT_SPACING);
           int keyboardY = ScreenHeight / 1.5;
 
-          Rectangle sliceTextFieldRect = {
+          Rectangle textFieldRect = {
               Padding, keyboardY - sliceNameTextSize.y - Padding,
               fmax(sliceNameTextSize.x, squareButtonSize) + Padding,
               sliceNameTextSize.y};
 
-          DrawTextField(sliceTextFieldRect.x, sliceTextFieldRect.y,
-                        sliceTextFieldRect.width, sliceTextFieldRect.height,
-                        maxTextFieldWidth, FOREGROUND_COLOR, HIGHLIGHT_COLOR,
-                        FOREGROUND_COLOR, FontSize, Border,
-                        Slices[TypingIndex].Name);
+          DrawTextField(textFieldRect.x, textFieldRect.y, textFieldRect.width,
+                        textFieldRect.height, maxTextFieldWidth,
+                        FOREGROUND_COLOR, HIGHLIGHT_COLOR, FOREGROUND_COLOR,
+                        FontSize, Border, Slices[TypingIndex].Name);
 
 #define KEYBOARD_BUTTON(key, widthPercentage)                             \
   (Button)                                                                \
@@ -350,7 +346,7 @@ int main()
     .CallbackArgs = &(KeyboardPressArgs)                                  \
     {                                                                     \
       Slices[TypingIndex].Name, strlen(Slices[TypingIndex].Name), key[0], \
-          sliceTextFieldRect.width, maxTextFieldWidth                     \
+          textFieldRect.width, maxTextFieldWidth                          \
     }                                                                     \
   }
           ButtonRow keyboard[KEYBOARD_ROWS] = {
@@ -396,22 +392,21 @@ int main()
                       KEYBOARD_BUTTON("b", 100 / 8),
                       KEYBOARD_BUTTON("n", 100 / 8),
                       KEYBOARD_BUTTON("m", 100 / 8),
-                      (Button){
-                          .WidthPercentage = 100 / 8,
-                          .Text = "<-",
-                          .BorderThickness = Border,
-                          .RepeatPresses = true,
-                          .TextColor = RED,
-                          .BackgroundColor = HIGHLIGHT_COLOR,
-                          .PressedColor = RED_PRESSED_COLOR,
-                          .HoveredColor = RED_HOVERED_COLOR,
-                          .BorderColor = RED,
-                          .Callback = KeyboardPressFunc,
-                          .CallbackArgs =
-                              &(KeyboardPressArgs){
-                                  Slices[TypingIndex].Name,
-                                  strlen(Slices[TypingIndex].Name), '<',
-                                  sliceTextFieldRect.width, maxTextFieldWidth}},
+                      (Button){.WidthPercentage = 100 / 8,
+                               .Text = "<-",
+                               .BorderThickness = Border,
+                               .RepeatPresses = true,
+                               .TextColor = RED,
+                               .BackgroundColor = HIGHLIGHT_COLOR,
+                               .PressedColor = RED_PRESSED_COLOR,
+                               .HoveredColor = RED_HOVERED_COLOR,
+                               .BorderColor = RED,
+                               .Callback = KeyboardPressFunc,
+                               .CallbackArgs =
+                                   &(KeyboardPressArgs){
+                                       Slices[TypingIndex].Name,
+                                       strlen(Slices[TypingIndex].Name), '<',
+                                       textFieldRect.width, maxTextFieldWidth}},
                   },
               },
               {KEYBOARD_ROW_PERCENTAGE, 3,
@@ -426,8 +421,8 @@ int main()
                          keyboard, KEYBOARD_ROWS);
 
           DrawButton(
-              cornerButtonRect.x, sliceTextFieldRect.y, cornerButtonRect.width,
-              sliceTextFieldRect.height, ">", FontSize, false, GREEN,
+              cornerButtonRect.x, textFieldRect.y, cornerButtonRect.width,
+              textFieldRect.height, ">", FontSize, false, GREEN,
               HIGHLIGHT_COLOR, GREEN_PRESSED_COLOR, GREEN_HOVERED_COLOR, GREEN,
               1, NO_SHADOW, NO_ICON, KeyboardPressFunc, 0, 0,
               &(KeyboardPressArgs){Slices[TypingIndex].Name,
