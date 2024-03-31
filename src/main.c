@@ -175,8 +175,6 @@ int main()
         case SCENE_MENU:
         {
           {
-            // TODO(LucasTA): set background of slice entry on its current
-            // color, or set its textbox background
             MenuScrollOffset =
                 clamp(MenuScrollOffset + MouseScroll * 32,
                       fmin(COLORS_AMOUNT - 3, fmax(0, SlicesCount - 2)) *
@@ -208,6 +206,9 @@ int main()
 
               Rectangle menuEntryRect = {menuX, menuEntryY, menuEntryWidth,
                                          menuEntryHeight};
+
+              // slice entry background
+              DrawRectangleRec(menuEntryRect, COLORS[Slices[i].Color]);
 
               // slice entry outline
               DrawRectangleLinesEx(menuEntryRect, Border, FOREGROUND_COLOR);
