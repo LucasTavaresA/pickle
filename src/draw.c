@@ -272,7 +272,8 @@ static void DrawWheel(float angle,
   }
 
   // Draw a border on the wheel
-  DrawRing(center, radius - Border, radius + Border, 0, 360, 0, FOREGROUND_COLOR);
+  DrawRing(center, radius - Border, radius + Border, 0, 360, 0,
+           FOREGROUND_COLOR);
 
   // Draw a circle in the middle of the wheel
   float inner_circle_radius = radius / 4;
@@ -345,7 +346,6 @@ static void DrawCross(int x,
                              MIN_REPEAT_INTERVAL);                           \
   }
 
-// FIXME(LucasTA): Don't hover two buttons at once
 static void DrawButton(int x,
                        int y,
                        int width,
@@ -368,7 +368,8 @@ static void DrawButton(int x,
                        int buttonColumn,
                        void* callbackArgs)
 {
-  if (!ButtonWasPressed && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
+  if (!Dragging && !ButtonWasPressed &&
+      IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
       IsPointInsideRect(MouseX, MouseY, x, y, width, height) &&
       IsPointInsideRect(MousePressedX, MousePressedY, x, y, width, height))
   {
@@ -376,7 +377,8 @@ static void DrawButton(int x,
     ButtonPressedTime = 0;
     KeyRepeatInterval = INITIAL_REPEAT_INTERVAL;
   }
-  else if (!ButtonWasPressed && IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
+  else if (!Dragging && !ButtonWasPressed &&
+           IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
            IsPointInsideRect(MouseX, MouseY, x, y, width, height) &&
            IsPointInsideRect(MousePressedX, MousePressedY, x, y, width, height))
   {
@@ -397,7 +399,7 @@ static void DrawButton(int x,
   {
     if (IsPointInsideRect(MouseX, MouseY, x, y, width, height))
     {
-      if (!ButtonWasPressed &&
+      if (!Dragging && !ButtonWasPressed &&
           IsPointInsideRect(MousePressedX, MousePressedY, x, y, width, height))
       {
         HandleKeypress;
@@ -415,7 +417,7 @@ static void DrawButton(int x,
     }
     else
     {
-      if (!ButtonWasPressed &&
+      if (!Dragging && !ButtonWasPressed &&
           IsPointInsideRect(MousePressedX, MousePressedY, x, y, width, height))
       {
         HandleKeypress;

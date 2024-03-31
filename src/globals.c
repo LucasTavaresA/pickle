@@ -75,19 +75,21 @@ static const Color GREEN_PRESSED_COLOR = DARKGREEN;
 static const Color GREEN_HOVERED_COLOR = (Color){255, 255, 122, 255};
 
 #ifdef PLATFORM_ANDROID
+static Vector2 StartTouchPosition;
 static int TouchCount = 0;
 static const float INITIAL_REPEAT_INTERVAL = 0.5f;
 #else
 static const float INITIAL_REPEAT_INTERVAL = 0.3f;
+static float MouseScroll = 0;
 #endif
 
 static const float MIN_REPEAT_INTERVAL = INITIAL_REPEAT_INTERVAL / 10;
 static float ButtonPressedTime = 0;
 static float KeyRepeatInterval = INITIAL_REPEAT_INTERVAL;
-static float MouseScroll = 0;
 static float MenuScrollOffset = 0;
 static bool ButtonWasPressed = false;
 static bool Clicked = false;
+static bool Dragging = false;
 static Font Fonte;
 static int ScreenWidth = 0;
 static int ScreenHeight = 0;

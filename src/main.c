@@ -1,3 +1,4 @@
+// TODO(LucasTA): Fix all the Log.c warnings
 #include "../raylib/src/raylib.h"
 
 #include "draw.c"
@@ -133,6 +134,8 @@ int main()
     {
 #ifdef PLATFORM_ANDROID
       TouchCount = GetTouchPointCount();
+#else
+      MouseScroll = GetMouseWheelMove() * 32;
 #endif
 
       MouseX = GetMouseX();
@@ -146,9 +149,6 @@ int main()
         MousePressedY = MouseY;
         Clicked = true;
       }
-
-      // TODO(LucasTA): Move Slices menu using touch
-      MouseScroll = GetMouseWheelMove();
     }
 
     // Draw
@@ -166,8 +166,9 @@ int main()
       int menuEntryWidth =
           ScreenWidth -
           (ScreenWidth < ScreenHeight ? sidePadding : sidePadding * 2);
-      int menuEntryHeight =
-          (ScreenWidth < ScreenHeight ? ScreenHeight / 6 : ScreenHeight / 3);
+      int menuVisibleEntries =
+          (ScreenWidth < ScreenHeight ? 6 : 3);
+      int menuEntryHeight = ScreenHeight / menuVisibleEntries;
       int maxTextFieldWidth = menuEntryWidth - sidePadding * 2;
 
       switch (CurrentScene)
@@ -175,11 +176,38 @@ int main()
         case SCENE_MENU:
         {
           {
+#ifdef PLATFORM_ANDROID
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+            {
+              StartTouchPosition = GetTouchPosition(0);
+            }
+
+            if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+            {
+              Vector2 currentTouchPosition = GetTouchPosition(0);
+
+              float touchMoveDistance =
+                  fabsf(currentTouchPosition.y - StartTouchPosition.y);
+
+              if (touchMoveDistance > 2)
+              {
+                Dragging = true;
+                MenuScrollOffset =
+                    clamp(MenuScrollOffset + currentTouchPosition.y -
+                              StartTouchPosition.y,
+                          clamp(SlicesCount - (menuVisibleEntries - 1), 0, COLORS_AMOUNT - menuVisibleEntries) *
+                              -menuEntryHeight,
+                          0);
+                StartTouchPosition = currentTouchPosition;
+              }
+            }
+#else
             MenuScrollOffset =
-                clamp(MenuScrollOffset + MouseScroll * 32,
-                      fmin(COLORS_AMOUNT - 3, fmax(0, SlicesCount - 2)) *
+                clamp(MenuScrollOffset + MouseScroll,
+                      clamp(SlicesCount - (menuVisibleEntries - 1), 0, COLORS_AMOUNT - menuVisibleEntries) *
                           -menuEntryHeight,
                       0);
+#endif
 
             // draw a button to add a slice
             if (SlicesCount < COLORS_AMOUNT)
@@ -459,6 +487,11 @@ int main()
             }
           }
           break;
+      }
+
+      if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
+      {
+        Dragging = false;
       }
 
       LogAppend("INFO(Mouse): X %d Y %d PressedX %d PressedY %d \n", MouseX,
