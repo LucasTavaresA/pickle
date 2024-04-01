@@ -61,6 +61,7 @@ static int SlicesCount = 0;
 #define PALETTE_COL_PERCENTAGE (100.0f / (PALETTE_COL_AMOUNT))
 
 static const char APP_NAME[] = "pickle";
+static const char WHEEL_TEXT[] = "SPIN!";
 static const int TEXT_SPACING = 2;
 static const float ROUNDNESS = 0.2f;
 static const Color FOREGROUND_COLOR = BLACK;
@@ -88,7 +89,10 @@ static float ButtonPressedTime = 0;
 static float KeyRepeatInterval = INITIAL_REPEAT_INTERVAL;
 static float MenuScrollOffset = 0;
 static float DeltaTime = 0;
+static float WheelAcceleration = 0;
+static float WheelAccelerationRate = 0;
 static float WheelAngle = 0;
+static Vector2 WheelTextSize = {0};
 static bool ButtonWasPressed = false;
 static bool Clicked = false;
 static bool Dragging = false;

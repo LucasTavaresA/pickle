@@ -90,7 +90,8 @@ static void ToggleMenuFunc(int buttonRow, int buttonColumn, void* _args)
 
 int main()
 {
-  SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI | FLAG_MSAA_4X_HINT);
+  SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI |
+                 FLAG_MSAA_4X_HINT);
   InitWindow(ScreenWidth, ScreenHeight, APP_NAME);
   SetExitKey(0);
 
@@ -476,7 +477,41 @@ int main()
               }
               else
               {
-                DrawWheel(0, wheelRadius, Slices, SlicesCount);
+                DrawWheel(WheelAngle, wheelRadius, Slices, SlicesCount);
+
+                if (WheelAcceleration > 0)
+                {
+                  WheelAngle += WheelAcceleration * DeltaTime;
+                  WheelAcceleration -= WheelAccelerationRate;
+
+                  DrawRing((Vector2){(float)ScreenWidth / 2,
+                                     (float)ScreenHeight / 2},
+                           (float)wheelRadius / 10,
+                           (float)wheelRadius / 10 + Padding, WheelAngle,
+                           WheelAngle + (360.0f / SlicesCount), 0,
+                           HIGHLIGHT_COLOR);
+                }
+                else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
+                         CheckCollisionPointCircle(
+                             (Vector2){MouseX, MouseY},
+                             (Vector2){(float)ScreenWidth / 2,
+                                       (float)ScreenHeight / 2},
+                             wheelRadius / 4))
+                {
+                  WheelAcceleration = GetRandomValue(1000, 2000);
+                  WheelAccelerationRate = (float)GetRandomValue(1, 5) / 10;
+                }
+                else
+                {
+                  WheelTextSize =
+                      MeasureTextEx(Fonte, WHEEL_TEXT, FontSize, TEXT_SPACING);
+
+                  DrawTextEx(
+                      Fonte, WHEEL_TEXT,
+                      (Vector2){(float)ScreenWidth / 2 - WheelTextSize.x / 2,
+                                (float)ScreenHeight / 2 - WheelTextSize.y / 2},
+                      FontSize, TEXT_SPACING, HIGHLIGHT_COLOR);
+                }
               }
             }
 
