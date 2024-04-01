@@ -127,6 +127,7 @@ int main()
       FontSize = (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) / 25;
       Border = fmax((float)ScreenWidth / 500, 1);
       Padding = Border * 2;
+      DeltaTime = GetFrameTime();
     }
 
     // update mouse and touch information
@@ -469,7 +470,9 @@ int main()
 
               if (SlicesCount == 0)
               {
-                DrawWheel(0, wheelRadius, DEFAULT_SLICES, COLORS_AMOUNT);
+                WheelAngle += 5 * DeltaTime;
+                DrawWheel(WheelAngle, wheelRadius, DEFAULT_SLICES,
+                          COLORS_AMOUNT);
               }
               else
               {
