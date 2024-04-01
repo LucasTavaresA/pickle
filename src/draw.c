@@ -1,5 +1,6 @@
 #ifndef PICKLE_DRAW
 #define PICKLE_DRAW
+#include <stdlib.h>
 #include <math.h>
 
 #include "../raylib/src/raylib.h"
@@ -8,12 +9,21 @@
 #include "globals.c"
 #include "log.c"
 
+#define CONTRAST_LIMIT 90
+
 #define IsPointInsideRect(x, y, recX, recY, recWidth, recHeight) \
   (x >= recX && x <= recX + recWidth && y >= recY && y <= recY + recHeight)
 
 // picks between black and white depending on the passed color
 #define GetContrastedTextColor(color) \
   ((color.r + color.g + color.b) / 3 < CONTRAST_LIMIT) ? WHITE : BLACK
+
+#define CheckBadContrast(backgroundColor, textColor) \
+  ((abs(backgroundColor.r - textColor.r) +           \
+    abs(backgroundColor.g - textColor.g) +           \
+    abs(backgroundColor.b - textColor.b)) /          \
+       3 <                                           \
+   CONTRAST_LIMIT)
 
 typedef enum
 {
@@ -147,9 +157,9 @@ static void DrawTextBox(int x,
                         int borderThickness,
                         ShadowStyle shadowStyle)
 {
-  LogIfBadContrast(backgroundColor, textColor,
-                   "ERROR: The text at the %d,%d text box is not visible!\n", x,
-                   y);
+  LogIf(CheckBadContrast(backgroundColor, textColor),
+        LogAppend("ERROR: The text at the %d,%d text box is not visible!\n", x,
+                  y));
 
   if (fontSize == 0)
   {
@@ -158,9 +168,10 @@ static void DrawTextBox(int x,
 
   Vector2 textSize = MeasureTextEx(Fonte, text, fontSize, TEXT_SPACING);
 
-  LogIfTrue(textSize.x > width || textSize.y > height,
-            "ERROR: The text at the %d,%d text box does not fit its box!\n", x,
-            y);
+  LogIf(
+      textSize.x > width || textSize.y > height,
+      LogAppend("ERROR: The text at the %d,%d text box does not fit its box!\n",
+                x, y));
 
   int textX = x + ((width - textSize.x) / 2);
   int textY = y + ((height - textSize.y) / 2);
@@ -227,19 +238,20 @@ static void DrawRectangleGrid(int x,
       curX += colLength + padding;
       takenWidth += colLength;
 
-      LogIfTrue(takenWidth > availableWidth,
+      LogIf(takenWidth > availableWidth,
+            LogAppend(
                 "ERROR: Rectangle grid %d row %d column takes more than the "
                 "available width!\n",
-                i + 1, j + 1);
+                i + 1, j + 1));
     }
 
     curY += rowLength + padding;
     takenHeight += rowLength;
 
-    LogIfTrue(
-        takenHeight > availableHeight,
-        "ERROR: Rectangle grid %d row takes more than the available height!\n",
-        i + 1);
+    LogIf(takenHeight > availableHeight,
+          LogAppend("ERROR: Rectangle grid %d row takes more than the "
+                    "available height!\n",
+                    i + 1));
   }
 }
 
@@ -473,9 +485,9 @@ static void DrawButtonGrid(int x,
                            const ButtonRow* rows,
                            int rows_amount)
 {
-  LogIfTrue(x < 0 || y < 0 || width <= 0 || height <= 0 ||
-                x + width > ScreenWidth || y + height > ScreenHeight,
-            "ERROR: Button grid is outside of the screen!\n");
+  LogIf(x < 0 || y < 0 || width <= 0 || height <= 0 ||
+            x + width > ScreenWidth || y + height > ScreenHeight,
+        LogAppend("ERROR: Button grid is outside of the screen!\n"));
 
   int availableHeight = height - (padding * (rows_amount - 1));
   int curY = y;
@@ -505,19 +517,20 @@ static void DrawButtonGrid(int x,
       curX += colLength + padding;
       takenWidth += colLength;
 
-      LogIfTrue(
-          takenWidth > availableWidth,
-          "ERROR: Button grid %d column takes more than the available width!\n",
-          j + 1);
+      LogIf(takenWidth > availableWidth,
+            LogAppend("ERROR: Button grid %d column takes more than the "
+                      "available width!\n",
+                      j + 1));
     }
 
     curY += rowLength + padding;
     takenHeight += rowLength;
 
-    LogIfTrue(
+    LogIf(
         takenHeight > availableHeight,
-        "ERROR: Button grid %d row takes more than the available height!\n",
-        i + 1);
+        LogAppend(
+            "ERROR: Button grid %d row takes more than the available height!\n",
+            i + 1));
   }
 }
 
