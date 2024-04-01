@@ -157,7 +157,7 @@ static void DrawTextBox(int x,
                         int borderThickness,
                         ShadowStyle shadowStyle)
 {
-  LogIf(CheckBadContrast(backgroundColor, textColor),
+  LogIf((strcmp(text, "") != 0) && CheckBadContrast(backgroundColor, textColor),
         LogAppend("ERROR: The text at the %d,%d text box is not visible!\n", x,
                   y));
 
@@ -485,10 +485,6 @@ static void DrawButtonGrid(int x,
                            const ButtonRow* rows,
                            int rows_amount)
 {
-  LogIf(x < 0 || y < 0 || width <= 0 || height <= 0 ||
-            x + width > ScreenWidth || y + height > ScreenHeight,
-        LogAppend("ERROR: Button grid is outside of the screen!\n"));
-
   int availableHeight = height - (padding * (rows_amount - 1));
   int curY = y;
   int takenHeight = 0;

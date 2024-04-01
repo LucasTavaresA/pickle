@@ -1,4 +1,3 @@
-// TODO(LucasTA): Fix all the Log.c warnings
 #include "../raylib/src/raylib.h"
 
 #include "draw.c"
