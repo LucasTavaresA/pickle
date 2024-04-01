@@ -11,7 +11,11 @@
 #define LogDraw(...)
 #define LogSet(...)
 #else
-static char LogMessage[10240] = "";
+#ifndef LOG_MESSAGE_LENGTH
+#define LOG_MESSAGE_LENGTH 8000
+#endif
+
+static char LogMessage[LOG_MESSAGE_LENGTH] = {0};
 
 #define LogAppend(formatStr, ...) \
   sprintf(LogMessage + strlen(LogMessage), formatStr, ##__VA_ARGS__);
@@ -22,10 +26,14 @@ static char LogMessage[10240] = "";
     code                       \
   }
 
-#define LogDraw() DrawText(LogMessage, 0, 0, 20, BLUE)
+#ifndef LOG_FONT_SIZE
+#define LOG_FONT_SIZE 20
+#endif
+
+#define LogDraw() DrawText(LogMessage, 0, 0, LOG_FONT_SIZE, BLUE)
 
 #define LogSet(message)                             \
-  strncpy(LogMessage, message, sizeof(LogMessage)); \
+  strncpy(LogMessage, message, LOG_MESSAGE_LENGTH); \
   LogMessage[sizeof(LogMessage) - 1] = '\0';
 #endif  // RELEASE
 
