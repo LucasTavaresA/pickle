@@ -90,7 +90,7 @@ static void ToggleMenuFunc(int buttonRow, int buttonColumn, void* _args)
 
 int main()
 {
-  SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT);
+  SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI | FLAG_MSAA_4X_HINT);
   InitWindow(ScreenWidth, ScreenHeight, APP_NAME);
   SetExitKey(0);
 
@@ -165,8 +165,7 @@ int main()
       int menuEntryWidth =
           ScreenWidth -
           (ScreenWidth < ScreenHeight ? sidePadding : sidePadding * 2);
-      int menuVisibleEntries =
-          (ScreenWidth < ScreenHeight ? 6 : 3);
+      int menuVisibleEntries = (ScreenWidth < ScreenHeight ? 6 : 3);
       int menuEntryHeight = ScreenHeight / menuVisibleEntries;
       int maxTextFieldWidth = menuEntryWidth - sidePadding * 2;
 
@@ -194,7 +193,8 @@ int main()
                 MenuScrollOffset =
                     clamp(MenuScrollOffset + currentTouchPosition.y -
                               StartTouchPosition.y,
-                          clamp(SlicesCount - (menuVisibleEntries - 1), 0, COLORS_AMOUNT - menuVisibleEntries) *
+                          clamp(SlicesCount - (menuVisibleEntries - 1), 0,
+                                COLORS_AMOUNT - menuVisibleEntries) *
                               -menuEntryHeight,
                           0);
                 StartTouchPosition = currentTouchPosition;
@@ -203,7 +203,8 @@ int main()
 #else
             MenuScrollOffset =
                 clamp(MenuScrollOffset + MouseScroll,
-                      clamp(SlicesCount - (menuVisibleEntries - 1), 0, COLORS_AMOUNT - menuVisibleEntries) *
+                      clamp(SlicesCount - (menuVisibleEntries - 1), 0,
+                            COLORS_AMOUNT - menuVisibleEntries) *
                           -menuEntryHeight,
                       0);
 #endif
