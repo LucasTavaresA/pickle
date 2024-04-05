@@ -5,7 +5,8 @@ LINUX=0
 ANDROID=0
 REDOWNLOAD=0
 REBUILD=0
-BUILD_FLAGS="-ggdb -Wall -Wextra -Wshadow"
+BUILD_FLAGS="-ggdb"
+WARNING_FLAGS="-Wall -Wextra -Wshadow"
 PROGRAM="pickle"
 MAINTAINER="lucasta"
 SOURCE="https://dl.google.com/android/repository/"
@@ -43,6 +44,7 @@ main() {
 				;;
 			"linux")
 				LINUX=1
+				BUILD_FLAGS="$BUILD_FLAGS $WARNING_FLAGS"
 				;;
 			"--help")
 				print_help
@@ -90,7 +92,7 @@ main() {
 			)
 		fi
 
-		cc src/main.c -I./raylib/src/ $BUILD_FLAGS -L./lib/desktop/ -lraylib -lm -o $PROGRAM || exit 1
+		cc src/main.c -I./raylib/src/ $BUILD_FLAGS -L./lib/desktop/ -l:libraylib.a -lm -o $PROGRAM || exit 1
 
 		if [ "$RUN" = 1 ]; then
 			./$PROGRAM
@@ -168,9 +170,9 @@ main() {
 		TOOLCHAIN=android/ndk/toolchains/llvm/prebuilt/linux-x86_64
 		NATIVE_APP_GLUE=android/ndk/sources/android/native_app_glue
 
-		FLAGS="-ffunction-sections -funwind-tables -fstack-protector-strong -fPIC -Wall \
-	-Wformat -Werror=format-security -no-canonical-prefixes \
-	-DANDROID -DPLATFORM_ANDROID -D__ANDROID_API__=29 $BUILD_FLAGS"
+		FLAGS="-ffunction-sections -funwind-tables -fstack-protector-strong -fPIC \
+			-Wno-macro-redefined -no-canonical-prefixes -DANDROID -DPLATFORM_ANDROID \
+			-D__ANDROID_API__=29 $BUILD_FLAGS"
 
 		INCLUDES="-I. -I./raylib/src/ -I$NATIVE_APP_GLUE -I$TOOLCHAIN/sysroot/usr/include"
 
