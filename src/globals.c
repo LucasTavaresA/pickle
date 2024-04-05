@@ -97,6 +97,7 @@ static bool ButtonWasPressed = false;
 static bool Clicked = false;
 static bool Dragging = false;
 static Font Fonte;
+static Image WindowIcon = {0};
 static int ScreenWidth = 0;
 static int ScreenHeight = 0;
 static int Padding = 0;

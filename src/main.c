@@ -101,6 +101,9 @@ int main()
 
   Fonte = LoadFont("iosevka-regular.ttf");
 
+  WindowIcon = LoadImage("icon_xhdpi.png");
+  SetWindowIcon(WindowIcon);
+
 #define X(name) name##Icon = LoadTexture(#name "Icon.png");
   ICON_LIST
 #undef X
