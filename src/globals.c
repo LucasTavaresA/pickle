@@ -127,4 +127,14 @@ enum SceneEnum
 
 static int CurrentScene = SCENE_WHEEL;
 
+enum StateEnum
+{
+  STATE_WINNER_POPUP = -3,
+  STATE_SPINNING = -2,
+  STATE_NO_WINNER = -1,
+  STATE_WINNER = 0,
+};
+
+static int WheelPickedIndex = STATE_NO_WINNER;
+
 #endif  // PICKLE_GLOBALS

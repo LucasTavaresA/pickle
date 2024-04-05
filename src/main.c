@@ -471,7 +471,7 @@ int main()
 
               if (SlicesCount == 0)
               {
-                WheelAngle += 5 * DeltaTime;
+                WheelAngle -= 5 * DeltaTime;
                 DrawWheel(WheelAngle, wheelRadius, DEFAULT_SLICES,
                           COLORS_AMOUNT);
               }
@@ -481,7 +481,7 @@ int main()
 
                 if (WheelAcceleration > 0)
                 {
-                  WheelAngle += WheelAcceleration * DeltaTime;
+                  WheelAngle -= WheelAcceleration * DeltaTime;
                   WheelAcceleration -= WheelAccelerationRate;
 
                   DrawRing((Vector2){(float)ScreenWidth / 2,
@@ -491,15 +491,29 @@ int main()
                            WheelAngle + (360.0f / SlicesCount), 0,
                            HIGHLIGHT_COLOR);
                 }
-                else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
-                         CheckCollisionPointCircle(
-                             (Vector2){MouseX, MouseY},
-                             (Vector2){(float)ScreenWidth / 2,
-                                       (float)ScreenHeight / 2},
-                             wheelRadius / 4))
+                else if (WheelPickedIndex == STATE_WINNER_POPUP)
                 {
-                  WheelAcceleration = GetRandomValue(1000, 2000);
-                  WheelAccelerationRate = (float)GetRandomValue(1, 5) / 10;
+                  WaitTime(1);
+                  WheelPickedIndex = STATE_NO_WINNER;
+                }
+                else if (WheelPickedIndex >= STATE_WINNER)
+                {
+                  Vector2 WinnerTextSize =
+                      MeasureTextEx(Fonte, Slices[WheelPickedIndex].Name,
+                                    FontSize * 2, TEXT_SPACING);
+
+                  Color winnerColor = COLORS[Slices[WheelPickedIndex].Color];
+
+                  DrawTextBox(ScreenWidth / 2.0 - WinnerTextSize.x - Padding,
+                              ScreenHeight / 2.0 - WinnerTextSize.y - Padding,
+                              WinnerTextSize.x * 2 + Padding,
+                              WinnerTextSize.y * 2 + Padding,
+                              Slices[WheelPickedIndex].Name, FontSize,
+                              GetContrastedTextColor(winnerColor), winnerColor,
+                              GetContrastedTextColor(winnerColor), Padding,
+                              NO_SHADOW);
+
+                  WheelPickedIndex = STATE_WINNER_POPUP;
                 }
                 else
                 {
@@ -511,6 +525,24 @@ int main()
                       (Vector2){(float)ScreenWidth / 2 - WheelTextSize.x / 2,
                                 (float)ScreenHeight / 2 - WheelTextSize.y / 2},
                       FontSize, TEXT_SPACING, HIGHLIGHT_COLOR);
+
+                  if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
+                      CheckCollisionPointCircle(
+                          (Vector2){MouseX, MouseY},
+                          (Vector2){(float)ScreenWidth / 2,
+                                    (float)ScreenHeight / 2},
+                          (float)wheelRadius / 4))
+                  {
+                    WheelPickedIndex = STATE_SPINNING;
+                    WheelAcceleration = GetRandomValue(1000, 2000);
+                    WheelAccelerationRate = (float)GetRandomValue(1, 5) / 10;
+                  }
+                  else if (WheelPickedIndex == STATE_SPINNING)
+                  {
+                    WheelPickedIndex =
+                        floor(fmod(fabs(WheelAngle - 90), 360.0) /
+                              (360.0 / SlicesCount));
+                  }
                 }
               }
             }

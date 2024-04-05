@@ -1,7 +1,7 @@
 #ifndef PICKLE_DRAW
 #define PICKLE_DRAW
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include "../raylib/src/raylib.h"
 
