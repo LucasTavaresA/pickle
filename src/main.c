@@ -534,8 +534,13 @@ int main()
                           (float)wheelRadius / 4))
                   {
                     WheelPickedIndex = STATE_SPINNING;
+#ifdef PLATFORM_ANDROID
+                    WheelAcceleration = GetRandomValue(500, 1000);
+                    WheelAccelerationRate = GetRandomValue(2, 4);
+#else
                     WheelAcceleration = GetRandomValue(1000, 2000);
-                    WheelAccelerationRate = (float)GetRandomValue(1, 5) / 10;
+                    WheelAccelerationRate = (float)GetRandomValue(2, 4) / 10;
+#endif
                   }
                   else if (WheelPickedIndex == STATE_SPINNING)
                   {
