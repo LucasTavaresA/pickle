@@ -1,5 +1,7 @@
 #include "../raylib/src/raylib.h"
 
+#include "../assets/iosevka-regular.h"
+
 #include "draw.c"
 #include "globals.c"
 #include "log.c"
@@ -103,16 +105,16 @@ int main()
   ChangeDirectory("assets");
 #endif
 
-  Fonte = LoadFont("iosevka-regular.ttf");
+  Fonte = LoadFont_Iosevka();
 
-  WindowIcon = LoadImage("icon_xhdpi.png");
-  ImageFormat(&WindowIcon, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
-  SetWindowIcon(WindowIcon);
-  UnloadImage(WindowIcon);
-
-#define X(name) name##Icon = LoadTexture(#name "Icon.png");
+#define X(Name, NAME)                                \
+  Name##Texture = LoadTextureFromImage(Name##Image); \
+  SetTextureFilter(Name##Texture, TEXTURE_FILTER_POINT);
   ICON_LIST
 #undef X
+
+  ImageFormat(&WindowImage, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+  SetWindowIcon(WindowImage);
 
 #ifndef PLATFORM_ANDROID
   ChangeDirectory("..");
@@ -332,7 +334,7 @@ int main()
                            trashButtonRect.width, trashButtonRect.height, "",
                            FontSize, false, RED, BACKGROUND_COLOR,
                            RED_PRESSED_COLOR, RED_HOVERED_COLOR, RED, Padding,
-                           NO_SHADOW, TrashIcon, RemoveEntryFunc, 0, 0,
+                           NO_SHADOW, TrashTexture, RemoveEntryFunc, 0, 0,
                            &(RemoveEntryArgs){i});
               }
             }
@@ -567,7 +569,8 @@ int main()
                          cornerButtonRect.width, cornerButtonRect.height, "",
                          FontSize, false, FOREGROUND_COLOR, BACKGROUND_COLOR,
                          PRESSED_COLOR, HOVERED_COLOR, FOREGROUND_COLOR,
-                         Padding, NO_SHADOW, MenuIcon, ToggleMenuFunc, 0, 0, 0);
+                         Padding, NO_SHADOW, MenuTexture, ToggleMenuFunc, 0, 0,
+                         0);
             }
           }
           break;
@@ -587,9 +590,12 @@ int main()
     }
   }
 
-#define X(name) UnloadTexture(name##Icon);
+#define X(Name, NAME)           \
+  UnloadTexture(Name##Texture); \
+  UnloadImage(Name##Image);
   ICON_LIST
 #undef X
+  UnloadFont(Fonte);
   CloseWindow();
   return 0;
 }

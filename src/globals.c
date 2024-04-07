@@ -97,7 +97,6 @@ static bool ButtonWasPressed = false;
 static bool Clicked = false;
 static bool Dragging = false;
 static Font Fonte;
-static Image WindowIcon = {0};
 static int ScreenWidth = 0;
 static int ScreenHeight = 0;
 static int Padding = 0;
@@ -108,14 +107,6 @@ static int MousePressedX = 0;
 static int MousePressedY = 0;
 static int FontSize = 0;
 static int TypingIndex = -1;
-
-#define ICON_LIST \
-  X(Menu)         \
-  X(Trash)
-
-#define X(name) static Texture2D name##Icon;
-ICON_LIST
-#undef X
 
 enum SceneEnum
 {
@@ -137,5 +128,22 @@ enum StateEnum
 };
 
 static int WheelPickedIndex = STATE_NO_WINNER;
+
+#include "../assets/MenuIcon.h"
+#include "../assets/TrashIcon.h"
+#include "../assets/icon_xhdpi.h"
+
+#define ICON_LIST   \
+  X(Window, WINDOW) \
+  X(Menu, MENU)     \
+  X(Trash, TRASH)
+
+#define X(Name, NAME)                                               \
+  static Image Name##Image = {NAME##ICON_DATA, NAME##ICON_WIDTH,    \
+                              NAME##ICON_HEIGHT, NAME##ICON_FORMAT, \
+                              PIXELFORMAT_UNCOMPRESSED_R8G8B8A8};   \
+  static Texture2D Name##Texture;
+ICON_LIST
+#undef X
 
 #endif  // PICKLE_GLOBALS
