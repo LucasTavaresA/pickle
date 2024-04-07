@@ -1,12 +1,14 @@
 #!/usr/bin/env sh
 # shellcheck disable=2164,2086
 RUN=0
+WINDOWS=0
 LINUX=0
 ANDROID=0
 REDOWNLOAD=0
 REBUILD=0
 BUILD_FLAGS="-ggdb"
 WARNING_FLAGS="-Wall -Wextra -Wshadow"
+LINKING_FLAGS="-L./lib/desktop/ -I./raylib/src/ -l:libraylib.a -lm"
 PROGRAM="pickle"
 MAINTAINER="lucasta"
 SOURCE="https://dl.google.com/android/repository/"
@@ -15,7 +17,7 @@ NDK="android-ndk-r26b"
 
 print_help() {
 	printf \
-		"%s [linux|android] [-r -R -d -b]
+		"%s [windows|linux|android] [-r -R -d -b]
 
 -r           runs after building
 -R           builds with -DRELEASE, disabling debug mode features
@@ -40,11 +42,34 @@ main() {
 				BUILD_FLAGS="$BUILD_FLAGS -DRELEASE"
 				;;
 			"android")
+				if [ "$WINDOWS" = 1 ] || [ "$LINUX" = 1 ]; then
+					printf "You can only build for one platform at a time\n\n"
+					print_help
+					exit 1
+				fi
+
 				ANDROID=1
 				;;
 			"linux")
+				if [ "$WINDOWS" = 1 ] || [ "$ANDROID" = 1 ]; then
+					printf "You can only build for one platform at a time\n\n"
+					print_help
+					exit 1
+				fi
+
 				LINUX=1
-				BUILD_FLAGS="$BUILD_FLAGS $WARNING_FLAGS"
+				BUILD_FLAGS="$BUILD_FLAGS $WARNING_FLAGS -DPLATFORM_LINUX"
+				;;
+			"windows")
+				if [ "$LINUX" = 1 ] || [ "$ANDROID" = 1 ]; then
+					printf "You can only build for one platform at a time\n\n"
+					print_help
+					exit 1
+				fi
+
+				WINDOWS=1
+				BUILD_FLAGS="$BUILD_FLAGS -DPLATFORM_WINDOWS -Wl,--subsystem,windows"
+				LINKING_FLAGS="$LINKING_FLAGS -lgdi32 -lwinmm"
 				;;
 			"--help")
 				print_help
@@ -64,15 +89,11 @@ main() {
 		shift
 	done
 
-	if [ "$LINUX" = 0 ] && [ "$ANDROID" = 0 ]; then
+	if [ "$LINUX" = 0 ] && [ "$WINDOWS" = 0 ] && [ "$ANDROID" = 0 ]; then
 		printf "You need to specify a platform to build!\n\n"
 		print_help
 		exit 1
-	elif [ "$LINUX" = 1 ] && [ "$ANDROID" = 1 ]; then
-		printf "You can only build for one platform at a time\n\n"
-		print_help
-		exit 1
-	elif [ "$LINUX" = 1 ]; then
+	elif [ "$LINUX" = 1 ] || [ "$WINDOWS" = 1 ]; then
 		if [ "$REBUILD" = 1 ]; then
 			rm -rf ./lib/desktop/
 		fi
@@ -92,7 +113,12 @@ main() {
 			)
 		fi
 
-		cc src/main.c -I./raylib/src/ $BUILD_FLAGS -L./lib/desktop/ -l:libraylib.a -lm -o $PROGRAM || exit 1
+		if [ "$WINDOWS" = 1 ]; then
+			windres $PROGRAM.rc -O coff -o $PROGRAM.res --target=pe-x86-64
+			cc src/main.c $PROGRAM.res $BUILD_FLAGS $LINKING_FLAGS -o $PROGRAM || exit 1
+		else
+			cc src/main.c $BUILD_FLAGS $LINKING_FLAGS -o $PROGRAM || exit 1
+		fi
 
 		if [ "$RUN" = 1 ]; then
 			./$PROGRAM

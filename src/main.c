@@ -92,8 +92,12 @@ int main()
 {
   SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI |
                  FLAG_MSAA_4X_HINT);
+#ifdef PLATFORM_WINDOWS
+  InitWindow(800, 600, APP_NAME);
+#else
   InitWindow(ScreenWidth, ScreenHeight, APP_NAME);
-  SetExitKey(0);
+#endif
+  SetExitKey(KEY_NULL);
 
 #ifndef PLATFORM_ANDROID
   ChangeDirectory("assets");
@@ -102,7 +106,9 @@ int main()
   Fonte = LoadFont("iosevka-regular.ttf");
 
   WindowIcon = LoadImage("icon_xhdpi.png");
+  ImageFormat(&WindowIcon, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
   SetWindowIcon(WindowIcon);
+  UnloadImage(WindowIcon);
 
 #define X(name) name##Icon = LoadTexture(#name "Icon.png");
   ICON_LIST
