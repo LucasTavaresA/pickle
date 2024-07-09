@@ -200,7 +200,12 @@ int main()
               float touchMoveDistance =
                   fabsf(currentTouchPosition.y - StartTouchPosition.y);
 
-              if (touchMoveDistance > 2)
+              if (touchMoveDistance > 2 &&
+                  // NOTE(LucasTA): Don't scroll if touch starts outside the
+                  // list
+                  IsPointInsideRect(MousePressedX, MousePressedY, 0, 0,
+                                    ScreenWidth - cornerButtonRect.width,
+                                    ScreenHeight))
               {
                 Dragging = true;
                 MenuScrollOffset =

@@ -358,7 +358,6 @@ static void DrawCross(int x,
                              MIN_REPEAT_INTERVAL);                           \
   }
 
-// FIXME(LucasTA): Moving touch to outside of a button on mobile depresses it
 static void DrawButton(int x,
                        int y,
                        int width,
@@ -382,18 +381,9 @@ static void DrawButton(int x,
                        void* callbackArgs)
 {
   if (!Dragging && !ButtonWasPressed &&
-      IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
+      IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
       IsPointInsideRect(MouseX, MouseY, x, y, width, height) &&
       IsPointInsideRect(MousePressedX, MousePressedY, x, y, width, height))
-  {
-    ButtonWasPressed = true;
-    ButtonPressedTime = 0;
-    KeyRepeatInterval = INITIAL_REPEAT_INTERVAL;
-  }
-  else if (!Dragging && !ButtonWasPressed &&
-           IsMouseButtonReleased(MOUSE_BUTTON_LEFT) &&
-           IsPointInsideRect(MouseX, MouseY, x, y, width, height) &&
-           IsPointInsideRect(MousePressedX, MousePressedY, x, y, width, height))
   {
     ButtonWasPressed = true;
     ButtonPressedTime = 0;
