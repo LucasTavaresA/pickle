@@ -340,7 +340,7 @@ static void DrawCross(int x,
                                                                              \
   ButtonPressedTime += GetFrameTime();                                       \
                                                                              \
-  if (repeatPresses == true && ButtonPressedTime >= KeyRepeatInterval)       \
+  if (repeatPresses && ButtonPressedTime >= KeyRepeatInterval)       \
   {                                                                          \
     ButtonWasPressed = true;                                                 \
                                                                              \
@@ -358,6 +358,7 @@ static void DrawCross(int x,
                              MIN_REPEAT_INTERVAL);                           \
   }
 
+// FIXME(LucasTA): Moving touch to outside of a button on mobile depresses it
 static void DrawButton(int x,
                        int y,
                        int width,

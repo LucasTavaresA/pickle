@@ -1,4 +1,4 @@
-static double clamp(double value, double min, double max)
+static inline double clamp(double value, double min, double max)
 {
   if (value < min)
   {
