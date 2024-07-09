@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+set -e
 # shellcheck disable=2164,2086
 RUN=0
 WINDOWS=0
