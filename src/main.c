@@ -514,16 +514,19 @@ int main()
                 }
                 else if (WheelPickedIndex >= STATE_WINNER)
                 {
-                  Vector2 WinnerTextSize =
+                  Vector2 winnerTextSize =
                       MeasureTextEx(Fonte, Slices[WheelPickedIndex].Name,
-                                    FontSize * 2, TEXT_SPACING);
+                                    FontSize, TEXT_SPACING);
 
                   Color winnerColor = COLORS[Slices[WheelPickedIndex].Color];
 
-                  DrawTextBox(ScreenWidth / 2.0 - WinnerTextSize.x - Padding,
-                              ScreenHeight / 2.0 - WinnerTextSize.y - Padding,
-                              WinnerTextSize.x * 2 + Padding,
-                              WinnerTextSize.y * 2 + Padding,
+                  winnerTextSize.x = winnerTextSize.x * 1.5;
+                  winnerTextSize.y = winnerTextSize.y * 2;
+
+                  DrawTextBox((ScreenWidth - winnerTextSize.x) / 2,
+                              (ScreenHeight - winnerTextSize.y) / 2,
+                              winnerTextSize.x,
+                              winnerTextSize.y,
                               Slices[WheelPickedIndex].Name, FontSize,
                               GetContrastedTextColor(winnerColor), winnerColor,
                               GetContrastedTextColor(winnerColor), Padding,
