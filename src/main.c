@@ -219,6 +219,11 @@ int main()
               }
             }
 #else
+            if (MouseScroll > 0)
+            {
+              Dragging = true;
+            }
+
             MenuScrollOffset =
                 clamp(MenuScrollOffset + MouseScroll,
                       clamp(SlicesCount - (menuVisibleEntries - 1), 0,
