@@ -16,6 +16,22 @@ cd pickle
 ./build.sh
 ```
 
+### Build with docker/podman
+
+**Needed to work with old ass versions of glibc if you are on arch or other cutting edge distros**
+
+This will build pickle, get you the executable and delete everything
+
+First, install docker/podman then run
+
+```sh
+docker build -t pickle .
+docker run --name pickle-container pickle
+docker cp pickle-container:/build/pickle ./pickle
+docker rm pickle-container
+docker rmi pickle
+```
+
 ## Credits
 
 Made with [raylib](https://www.raylib.com/)
