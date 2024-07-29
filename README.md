@@ -28,8 +28,8 @@ First, install docker/podman then run
 docker build -t pickle .
 docker run --name pickle-container pickle
 docker cp pickle-container:/build/pickle ./pickle
-docker rm pickle-container
-docker rmi pickle
+docker rm -f pickle-container
+docker rmi -f pickle
 ```
 
 ## Credits
