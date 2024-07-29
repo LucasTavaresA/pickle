@@ -391,7 +391,7 @@ int main()
   (Button)                                                                \
   {                                                                       \
     .WidthPercentage = widthPercentage, .Text = key,                      \
-    .BorderThickness = Border, .RepeatPresses = true,                     \
+    .BorderThickness = Border, .RepeatPresses = false,                     \
     .TextColor = FOREGROUND_COLOR, .BackgroundColor = HIGHLIGHT_COLOR,    \
     .PressedColor = PRESSED_COLOR, .HoveredColor = HOVERED_COLOR,         \
     .BorderColor = FOREGROUND_COLOR, .Callback = KeyboardPressFunc,       \
