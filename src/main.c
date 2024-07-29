@@ -525,7 +525,7 @@ int main()
 
                   Color winnerColor = COLORS[Slices[WheelPickedIndex].Color];
 
-                  winnerTextSize.x = winnerTextSize.x * 1.5;
+                  winnerTextSize.x = fmax(winnerTextSize.x * 1.5, WheelTextSize.x);
                   winnerTextSize.y = winnerTextSize.y * 2;
 
                   DrawTextBox((ScreenWidth - winnerTextSize.x) / 2,
