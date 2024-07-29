@@ -78,7 +78,7 @@ static const Color GREEN_HOVERED_COLOR = (Color){255, 255, 122, 255};
 #ifdef PLATFORM_ANDROID
 static Vector2 StartTouchPosition;
 static int TouchCount = 0;
-static const float INITIAL_REPEAT_INTERVAL = 0.5f;
+static const float INITIAL_REPEAT_INTERVAL = 0.8f;
 #else
 static const float INITIAL_REPEAT_INTERVAL = 0.3f;
 static float MouseScroll = 0;
