@@ -13,8 +13,6 @@ typedef struct
   char* Buffer;
   int BufferLength;
   char KeyPressed;
-  int FieldWidth;
-  int MaxFieldWidth;
 } KeyboardPressArgs;
 
 void KeyboardPressFunc(int buttonRow, int buttonColumn, void* _args)
@@ -30,7 +28,7 @@ void KeyboardPressFunc(int buttonRow, int buttonColumn, void* _args)
     CurrentScene = SCENE_MENU;
     TypingIndex = -1;
   }
-  else if (args->FieldWidth < args->MaxFieldWidth)
+  else
   {
     args->Buffer[args->BufferLength] = tolower(args->KeyPressed);
     args->Buffer[args->BufferLength + 1] = '\0';
@@ -136,7 +134,7 @@ int main()
     {
       ScreenWidth = GetScreenWidth();
       ScreenHeight = GetScreenHeight();
-      FontSize = (ScreenWidth < ScreenHeight ? ScreenWidth : ScreenHeight) / 25;
+      FontSize = (ScreenWidth + ScreenHeight) / 70;
       Border = fmax((float)ScreenWidth / 500, 1);
       Padding = Border * 2;
       DeltaTime = GetFrameTime();
@@ -180,7 +178,6 @@ int main()
           (ScreenWidth < ScreenHeight ? sidePadding : sidePadding * 2);
       int menuVisibleEntries = (ScreenWidth < ScreenHeight ? 6 : 3);
       int menuEntryHeight = ScreenHeight / menuVisibleEntries;
-      int maxTextFieldWidth = menuEntryWidth - sidePadding * 2;
 
       switch (CurrentScene)
       {
@@ -305,8 +302,7 @@ int main()
               {
                 Rectangle menuEntryTextFieldRect = {
                     menuX + Padding, menuEntryY + Padding,
-                    fmax(sliceNameTextSize.x, squareButtonSize) + Padding,
-                    sliceNameTextSize.y};
+                    menuEntryWidth - sidePadding * 2, sliceNameTextSize.y};
 
                 if (TypingIndex != i)
                 {
@@ -324,12 +320,12 @@ int main()
 #ifdef PLATFORM_ANDROID
                   CurrentScene = SCENE_KEYBOARD;
 #else
-                  DrawTextField(
-                      menuEntryTextFieldRect.x, menuEntryTextFieldRect.y,
-                      menuEntryTextFieldRect.width,
-                      menuEntryTextFieldRect.height, maxTextFieldWidth,
-                      FOREGROUND_COLOR, HIGHLIGHT_COLOR, FOREGROUND_COLOR,
-                      FontSize, Border, Slices[i].Name);
+                  DrawTextField(menuEntryTextFieldRect.x,
+                                menuEntryTextFieldRect.y,
+                                menuEntryTextFieldRect.width,
+                                menuEntryTextFieldRect.height, FOREGROUND_COLOR,
+                                HIGHLIGHT_COLOR, FOREGROUND_COLOR, FontSize,
+                                Border, Slices[i].Name);
 #endif
                 }
               }
@@ -379,27 +375,26 @@ int main()
 
           Rectangle textFieldRect = {
               Padding, keyboardY - sliceNameTextSize.y - Padding,
-              fmax(sliceNameTextSize.x, squareButtonSize) + Padding,
+              ScreenWidth - squareButtonSize - Padding * 2,
               sliceNameTextSize.y};
 
           DrawTextField(textFieldRect.x, textFieldRect.y, textFieldRect.width,
-                        textFieldRect.height, maxTextFieldWidth,
-                        FOREGROUND_COLOR, HIGHLIGHT_COLOR, FOREGROUND_COLOR,
-                        FontSize, Border, Slices[TypingIndex].Name);
+                        textFieldRect.height, FOREGROUND_COLOR, HIGHLIGHT_COLOR,
+                        FOREGROUND_COLOR, FontSize, Border,
+                        Slices[TypingIndex].Name);
 
-#define KEYBOARD_BUTTON(key, widthPercentage)                             \
-  (Button)                                                                \
-  {                                                                       \
-    .WidthPercentage = widthPercentage, .Text = key,                      \
-    .BorderThickness = Border, .RepeatPresses = false,                     \
-    .TextColor = FOREGROUND_COLOR, .BackgroundColor = HIGHLIGHT_COLOR,    \
-    .PressedColor = PRESSED_COLOR, .HoveredColor = HOVERED_COLOR,         \
-    .BorderColor = FOREGROUND_COLOR, .Callback = KeyboardPressFunc,       \
-    .CallbackArgs = &(KeyboardPressArgs)                                  \
-    {                                                                     \
-      Slices[TypingIndex].Name, strlen(Slices[TypingIndex].Name), key[0], \
-          textFieldRect.width, maxTextFieldWidth                          \
-    }                                                                     \
+#define KEYBOARD_BUTTON(key, widthPercentage)                            \
+  (Button)                                                               \
+  {                                                                      \
+    .WidthPercentage = widthPercentage, .Text = key,                     \
+    .BorderThickness = Border, .RepeatPresses = false,                   \
+    .TextColor = FOREGROUND_COLOR, .BackgroundColor = HIGHLIGHT_COLOR,   \
+    .PressedColor = PRESSED_COLOR, .HoveredColor = HOVERED_COLOR,        \
+    .BorderColor = FOREGROUND_COLOR, .Callback = KeyboardPressFunc,      \
+    .CallbackArgs = &(KeyboardPressArgs)                                 \
+    {                                                                    \
+      Slices[TypingIndex].Name, strlen(Slices[TypingIndex].Name), key[0] \
+    }                                                                    \
   }
           ButtonRow keyboard[KEYBOARD_ROWS] = {
               {
@@ -457,8 +452,7 @@ int main()
                                .CallbackArgs =
                                    &(KeyboardPressArgs){
                                        Slices[TypingIndex].Name,
-                                       strlen(Slices[TypingIndex].Name), '<',
-                                       textFieldRect.width, maxTextFieldWidth}},
+                                       strlen(Slices[TypingIndex].Name), '<'}},
                   },
               },
               {KEYBOARD_ROW_PERCENTAGE, 3,
@@ -525,7 +519,7 @@ int main()
 
                   Color winnerColor = COLORS[Slices[WheelPickedIndex].Color];
 
-                  winnerTextSize.x = fmax(winnerTextSize.x * 1.5, WheelTextSize.x);
+                  winnerTextSize.x = fmin(winnerTextSize.x, wheelRadius * 2) + Padding * 4;
                   winnerTextSize.y = winnerTextSize.y * 2;
 
                   DrawTextBox((ScreenWidth - winnerTextSize.x) / 2,

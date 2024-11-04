@@ -166,7 +166,13 @@ static void DrawTextBox(int x,
     fontSize = FontSize;
   }
 
-  Vector2 textSize = MeasureTextEx(Fonte, text, fontSize, TEXT_SPACING);
+  Vector2 textSize;
+
+  do
+  {
+    textSize = MeasureTextEx(Fonte, text, fontSize, TEXT_SPACING);
+    fontSize -= 1;
+  } while (textSize.x > width || textSize.y > height);
 
   LogIf(
       textSize.x > width || textSize.y > height,
@@ -274,13 +280,14 @@ static void DrawWheel(float angle,
     DrawCircleSector(center, radius, startAngle, endAngle, 0,
                      COLORS[slices[i].Color]);
 
-    float midAngle = ((startAngle + endAngle) / 2) - (float)FontSize / 8;
-    Vector2 labelPosition = {
-        center.x + (radius / 2) * cosf(midAngle * DEG2RAD),
-        center.y + (radius / 2) * sinf(midAngle * DEG2RAD)};
+    float midAngle = ((startAngle + endAngle) / 2) - (float)FontSize / 5;
 
-    DrawTextPro(Fonte, slices[i].Name, labelPosition, (Vector2){0.5f, 0.5f},
-                midAngle, FontSize / 1.2, TEXT_SPACING,
+    Vector2 labelPosition = {
+        center.x + (radius / 3) * cosf(midAngle * DEG2RAD),
+        center.y + (radius / 3) * sinf(midAngle * DEG2RAD)};
+
+    DrawTextPro(Fonte, slices[i].Name, labelPosition, (Vector2){0, 0},
+                midAngle + 10, FontSize, TEXT_SPACING,
                 GetContrastedTextColor(COLORS[slices[i].Color]));
 
     startAngle += sectionSize;
@@ -525,7 +532,6 @@ static void DrawTextField(int x,
                           int y,
                           int width,
                           int height,
-                          int maxWidth,
                           Color textColor,
                           Color backgroundColor,
                           Color borderColor,
@@ -562,7 +568,7 @@ static void DrawTextField(int x,
   {
     ButtonPressedTime += GetFrameTime();
 
-    if (ButtonPressedTime >= KeyRepeatInterval && width < maxWidth)
+    if (ButtonPressedTime >= KeyRepeatInterval)
     {
       int keycode = GetCharPressed();
 
