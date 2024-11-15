@@ -274,6 +274,7 @@ int main()
                     menuEntryHeight - sliceNameTextSize.y - Padding * 4;
                 int paletteWidth = menuEntryWidth - sidePadding - Padding;
 
+                ColorPickArgs args = {i};
                 for (int c = 0; c < COLORS_AMOUNT; c++)
                 {
                   palette[c / (COLORS_AMOUNT / PALETTE_ROW_AMOUNT)]
@@ -291,7 +292,7 @@ int main()
                                NO_SHADOW,
                                NO_ICON,
                                ColorPickFunc,
-                               &(ColorPickArgs){i}};
+                               &args};
                 }
 
                 DrawButtonGrid(paletteX, paletteY, paletteWidth, paletteHeight,
@@ -306,6 +307,7 @@ int main()
 
                 if (TypingIndex != i)
                 {
+                  SelectTextFieldArgs args = {i};
                   DrawButton(menuEntryTextFieldRect.x, menuEntryTextFieldRect.y,
                              menuEntryTextFieldRect.width,
                              menuEntryTextFieldRect.height, Slices[i].Name,
@@ -313,7 +315,7 @@ int main()
                              BACKGROUND_COLOR, PRESSED_COLOR, HOVERED_COLOR,
                              FOREGROUND_COLOR, Border, NO_SHADOW, NO_ICON,
                              SelectTextFieldFunc, 0, 0,
-                             &(SelectTextFieldArgs){i});
+                             &args);
                 }
                 else
                 {
@@ -336,12 +338,13 @@ int main()
                     menuX + menuEntryWidth - sidePadding, menuEntryY + Padding,
                     squareButtonSize, squareButtonSize};
 
+                RemoveEntryArgs args = {i};
                 DrawButton(trashButtonRect.x, trashButtonRect.y,
                            trashButtonRect.width, trashButtonRect.height, "",
                            FontSize, false, RED, BACKGROUND_COLOR,
                            RED_PRESSED_COLOR, RED_HOVERED_COLOR, RED, Padding,
                            NO_SHADOW, TrashTexture, RemoveEntryFunc, 0, 0,
-                           &(RemoveEntryArgs){i});
+                           &args);
               }
             }
           }
