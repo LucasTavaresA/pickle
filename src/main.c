@@ -1,5 +1,13 @@
-#include "../raylib/src/raylib.h"
+#define FUNCS          \
+  FUNC(KeyboardPress,   char* Buffer, int BufferLength, char KeyPressed) \
+  FUNC(SelectTextField, int FieldIndex) \
+  FUNC(ColorPick,       int buttonRow, int buttonColumn, int SliceIndex) \
+  FUNC(AddEntry) \
+  FUNC(RemoveEntry,     int SliceIndex) \
+  FUNC(ToggleMenu)
 
+#include "funcs.c"
+#include "../raylib/src/raylib.h"
 #include "../assets/iosevka-regular.h"
 
 #include "draw.c"
@@ -8,30 +16,21 @@
 #include "math.c"
 
 #ifdef PLATFORM_ANDROID
-typedef struct
+void KeyboardPressFunc(KeyboardPressArgs args)
 {
-  char* Buffer;
-  int BufferLength;
-  char KeyPressed;
-} KeyboardPressArgs;
-
-void KeyboardPressFunc(int buttonRow, int buttonColumn, void* _args)
-{
-  KeyboardPressArgs* args = (KeyboardPressArgs*)_args;
-
-  if (args->KeyPressed == '<')
+  if (args.KeyPressed == '<')
   {
-    args->Buffer[args->BufferLength - 1] = '\0';
+    args.Buffer[args.BufferLength - 1] = '\0';
   }
-  else if (args->KeyPressed == '>')
+  else if (args.KeyPressed == '>')
   {
     CurrentScene = SCENE_MENU;
     TypingIndex = -1;
   }
   else
   {
-    args->Buffer[args->BufferLength] = tolower(args->KeyPressed);
-    args->Buffer[args->BufferLength + 1] = '\0';
+    args.Buffer[args.BufferLength] = tolower(args.KeyPressed);
+    args.Buffer[args.BufferLength + 1] = '\0';
   }
 }
 
@@ -39,30 +38,18 @@ void KeyboardPressFunc(int buttonRow, int buttonColumn, void* _args)
 #define KEYBOARD_ROW_PERCENTAGE 100 / KEYBOARD_ROWS
 #endif
 
-typedef struct
+static void SelectTextFieldFunc(SelectTextFieldArgs args)
 {
-  int FieldIndex;
-} SelectTextFieldArgs;
-
-static void SelectTextFieldFunc(int buttonRow, int buttonColumn, void* _args)
-{
-  SelectTextFieldArgs* args = (SelectTextFieldArgs*)_args;
-  TypingIndex = args->FieldIndex;
+  TypingIndex = args.FieldIndex;
 }
 
-typedef struct
+static void ColorPickFunc(ColorPickArgs args)
 {
-  int SliceIndex;
-} ColorPickArgs;
-
-static void ColorPickFunc(int buttonRow, int buttonColumn, void* _args)
-{
-  ColorPickArgs* args = (ColorPickArgs*)_args;
-  Slices[args->SliceIndex].Color =
-      buttonRow * (COLORS_AMOUNT / PALETTE_ROW_AMOUNT) + buttonColumn;
+  Slices[args.SliceIndex].Color =
+      args.buttonRow * (COLORS_AMOUNT / PALETTE_ROW_AMOUNT) + args.buttonColumn;
 }
 
-static void AddEntryFunc(int buttonRow, int buttonColumn, void* _args)
+static void AddEntryFunc()
 {
   strncpy(Slices[SlicesCount].Name, DEFAULT_SLICES[SlicesCount].Name,
           SLICE_NAME_SIZE);
@@ -70,23 +57,22 @@ static void AddEntryFunc(int buttonRow, int buttonColumn, void* _args)
   SlicesCount++;
 }
 
-typedef struct
+static void RemoveEntryFunc(RemoveEntryArgs args)
 {
-  int SliceIndex;
-} RemoveEntryArgs;
-
-static void RemoveEntryFunc(int buttonRow, int buttonColumn, void* _args)
-{
-  RemoveEntryArgs* args = (RemoveEntryArgs*)_args;
-  memmove(&Slices[args->SliceIndex], &Slices[args->SliceIndex + 1],
-          (SlicesCount - args->SliceIndex - 1) * sizeof(Slice));
+  memmove(&Slices[args.SliceIndex], &Slices[args.SliceIndex + 1],
+          (SlicesCount - args.SliceIndex - 1) * sizeof(Slice));
   SlicesCount--;
 }
 
-static void ToggleMenuFunc(int buttonRow, int buttonColumn, void* _args)
+static void ToggleMenuFunc()
 {
   CurrentScene = !CurrentScene;
 }
+
+#define DRAW_BUTTON(x, y, width, height, text, fontSize, repeatPresses, textColor, backgroundColor, pressedColor, \
+    hoveredColor, borderColor, borderThickness, shadowStyle, icon, Name, argsPtr) \
+  DrawButton(x, y, width, height, text, fontSize, repeatPresses, textColor, backgroundColor, pressedColor, \
+    hoveredColor, borderColor, borderThickness, shadowStyle, icon, Name##Wrapper, argsPtr)
 
 int main()
 {
@@ -234,11 +220,10 @@ int main()
             {
               int addButtonY = MenuScrollOffset + menuEntryHeight * SlicesCount;
 
-              DrawButton(menuX, addButtonY, menuEntryWidth, menuEntryHeight, "",
+              DRAW_BUTTON(menuX, addButtonY, menuEntryWidth, menuEntryHeight, "",
                          FontSize, false, FOREGROUND_COLOR, BACKGROUND_COLOR,
                          PRESSED_COLOR, HOVERED_COLOR, FOREGROUND_COLOR, Border,
-                         NO_SHADOW, NO_ICON, AddEntryFunc, 0, 0, 0);
-
+                         NO_SHADOW, NO_ICON, AddEntry, 0);
               // plus sign
               DrawCross(menuX + menuEntryWidth / 2,
                         addButtonY + menuEntryHeight / 2, 0,
@@ -274,9 +259,16 @@ int main()
                     menuEntryHeight - sliceNameTextSize.y - Padding * 4;
                 int paletteWidth = menuEntryWidth - sidePadding - Padding;
 
-                ColorPickArgs args = {i};
+                static ColorPickArgs colorPickArgs[COLORS_AMOUNT][COLORS_AMOUNT];
+
                 for (int c = 0; c < COLORS_AMOUNT; c++)
                 {
+                  colorPickArgs[i][c].SliceIndex = i;
+                  colorPickArgs[i][c].buttonColumn =
+                      c % (COLORS_AMOUNT / PALETTE_ROW_AMOUNT);
+                  colorPickArgs[i][c].buttonRow =
+                      c / (COLORS_AMOUNT / PALETTE_ROW_AMOUNT);
+
                   palette[c / (COLORS_AMOUNT / PALETTE_ROW_AMOUNT)]
                       .Columns[c % (COLORS_AMOUNT / PALETTE_ROW_AMOUNT)] =
                       (Button){PALETTE_COL_PERCENTAGE,
@@ -291,8 +283,8 @@ int main()
                                c == Slices[i].Color ? Padding : Border,
                                NO_SHADOW,
                                NO_ICON,
-                               ColorPickFunc,
-                               &args};
+                               ColorPickWrapper,
+                               &colorPickArgs[i][c]};
                 }
 
                 DrawButtonGrid(paletteX, paletteY, paletteWidth, paletteHeight,
@@ -308,14 +300,13 @@ int main()
                 if (TypingIndex != i)
                 {
                   SelectTextFieldArgs args = {i};
-                  DrawButton(menuEntryTextFieldRect.x, menuEntryTextFieldRect.y,
+                  DRAW_BUTTON(menuEntryTextFieldRect.x, menuEntryTextFieldRect.y,
                              menuEntryTextFieldRect.width,
                              menuEntryTextFieldRect.height, Slices[i].Name,
                              FontSize, false, FOREGROUND_COLOR,
                              BACKGROUND_COLOR, PRESSED_COLOR, HOVERED_COLOR,
                              FOREGROUND_COLOR, Border, NO_SHADOW, NO_ICON,
-                             SelectTextFieldFunc, 0, 0,
-                             &args);
+                             SelectTextField, &args);
                 }
                 else
                 {
@@ -339,23 +330,22 @@ int main()
                     squareButtonSize, squareButtonSize};
 
                 RemoveEntryArgs args = {i};
-                DrawButton(trashButtonRect.x, trashButtonRect.y,
+                DRAW_BUTTON(trashButtonRect.x, trashButtonRect.y,
                            trashButtonRect.width, trashButtonRect.height, "",
                            FontSize, false, RED, BACKGROUND_COLOR,
                            RED_PRESSED_COLOR, RED_HOVERED_COLOR, RED, Padding,
-                           NO_SHADOW, TrashTexture, RemoveEntryFunc, 0, 0,
-                           &args);
+                           NO_SHADOW, TrashTexture, RemoveEntry, &args);
               }
             }
           }
 
           // Draw a close button
           {
-            DrawButton(cornerButtonRect.x, cornerButtonRect.y,
+            DRAW_BUTTON(cornerButtonRect.x, cornerButtonRect.y,
                        cornerButtonRect.width, cornerButtonRect.height, "",
                        FontSize, false, RED, BACKGROUND_COLOR,
                        RED_PRESSED_COLOR, RED_HOVERED_COLOR, RED, Padding,
-                       NO_SHADOW, NO_ICON, ToggleMenuFunc, 0, 0, 0);
+                       NO_SHADOW, NO_ICON, ToggleMenu, 0);
 
             // x sign
             DrawCross(cornerButtonRect.x + cornerButtonRect.width / 2,
@@ -390,10 +380,10 @@ int main()
   (Button)                                                               \
   {                                                                      \
     .WidthPercentage = widthPercentage, .Text = key,                     \
-    .BorderThickness = Border, .RepeatPresses = false,                   \
+    .BorderThickness = Border, .RepeatPresses = true,                    \
     .TextColor = FOREGROUND_COLOR, .BackgroundColor = HIGHLIGHT_COLOR,   \
     .PressedColor = PRESSED_COLOR, .HoveredColor = HOVERED_COLOR,        \
-    .BorderColor = FOREGROUND_COLOR, .Callback = KeyboardPressFunc,      \
+    .BorderColor = FOREGROUND_COLOR, .Callback = KeyboardPressWrapper,   \
     .CallbackArgs = &(KeyboardPressArgs)                                 \
     {                                                                    \
       Slices[TypingIndex].Name, strlen(Slices[TypingIndex].Name), key[0] \
@@ -451,7 +441,7 @@ int main()
                                .PressedColor = RED_PRESSED_COLOR,
                                .HoveredColor = RED_HOVERED_COLOR,
                                .BorderColor = RED,
-                               .Callback = KeyboardPressFunc,
+                               .Callback = KeyboardPressWrapper,
                                .CallbackArgs =
                                    &(KeyboardPressArgs){
                                        Slices[TypingIndex].Name,
@@ -469,13 +459,13 @@ int main()
           DrawButtonGrid(0, keyboardY, ScreenWidth, ScreenHeight - keyboardY, 0,
                          keyboard, KEYBOARD_ROWS);
 
-          DrawButton(
+          KeyboardPressArgs args = (KeyboardPressArgs){
+              Slices[TypingIndex].Name, strlen(Slices[TypingIndex].Name), '>'};
+          DRAW_BUTTON(
               cornerButtonRect.x, textFieldRect.y, cornerButtonRect.width,
               textFieldRect.height, ">", FontSize, false, GREEN,
               HIGHLIGHT_COLOR, GREEN_PRESSED_COLOR, GREEN_HOVERED_COLOR, GREEN,
-              1, NO_SHADOW, NO_ICON, KeyboardPressFunc, 0, 0,
-              &(KeyboardPressArgs){Slices[TypingIndex].Name,
-                                   strlen(Slices[TypingIndex].Name), '>'});
+              1, NO_SHADOW, NO_ICON, KeyboardPress, &args);
         }
         break;
 #endif
@@ -575,12 +565,11 @@ int main()
 
             // Draw a menu button
             {
-              DrawButton(cornerButtonRect.x, cornerButtonRect.y,
+              DRAW_BUTTON(cornerButtonRect.x, cornerButtonRect.y,
                          cornerButtonRect.width, cornerButtonRect.height, "",
                          FontSize, false, FOREGROUND_COLOR, BACKGROUND_COLOR,
                          PRESSED_COLOR, HOVERED_COLOR, FOREGROUND_COLOR,
-                         Padding, NO_SHADOW, MenuTexture, ToggleMenuFunc, 0, 0,
-                         0);
+                         Padding, NO_SHADOW, MenuTexture, ToggleMenu, 0);
             }
           }
           break;
