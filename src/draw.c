@@ -568,7 +568,7 @@ static void DrawTextField(int x,
     {
       int keycode = GetCharPressed();
 
-      if (keycode == ' ' || isalnum(keycode))
+      if (nameLength < SLICE_NAME_SIZE && (keycode == ' ' || isalnum(keycode)))
       {
         buffer[nameLength] = tolower(keycode);
         buffer[nameLength + 1] = '\0';

@@ -27,7 +27,7 @@ void KeyboardPressFunc(KeyboardPressArgs args)
     CurrentScene = SCENE_MENU;
     TypingIndex = -1;
   }
-  else
+  else if (args.BufferLength < SLICE_NAME_SIZE)
   {
     args.Buffer[args.BufferLength] = tolower(args.KeyPressed);
     args.Buffer[args.BufferLength + 1] = '\0';
