@@ -1,9 +1,18 @@
 BasedOnStyle: Chromium
+UseTab: Always
 IndentWidth: 2
-UseTab: Never
+TabWidth: 2
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
 BreakBeforeBraces: Allman
+BreakStringLiterals: false
+ReflowComments: false
+ColumnLimit: 80
+IndentPPDirectives: AfterHash
+PPIndentWidth: 2
 BraceWrapping:
   AfterFunction: true
+  AfterEnum: true
   SplitEmptyFunction: true
+  SplitEmptyRecord: true

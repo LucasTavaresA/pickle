@@ -2,7 +2,7 @@
 #define FUNCS_C
 
 #ifndef FUNCS
-#define FUNCS
+#	define FUNCS
 #endif
 
 // clang-format off
@@ -27,17 +27,17 @@
 #define FIELDS(...) FIELDS_IMPL(ARG_COUNT(__VA_ARGS__), __VA_ARGS__)
 
 #define FUNC(Name, ...) \
-  __VA_OPT__(typedef struct {FIELDS(__VA_ARGS__)} Name##Args;)
+	__VA_OPT__(typedef struct {FIELDS(__VA_ARGS__)} Name##Args;)
 FUNCS
 #undef FUNC
 
 #define FUNC(Name, ...)                                \
-  static void Name##Func(__VA_OPT__(Name##Args args)); \
-  static void Name##Wrapper(__VA_OPT__(void* args))    \
-  {                                                    \
-    Name##Func(__VA_OPT__(*(Name##Args*)args));        \
-  }
+	static void Name##Func(__VA_OPT__(Name##Args args)); \
+	static void Name##Wrapper(__VA_OPT__(void* args))    \
+	{                                                    \
+		Name##Func(__VA_OPT__(*(Name##Args*)args));        \
+	}
 FUNCS
 #undef FUNC
 
-#endif  // FUNCS_C
+#endif	// FUNCS_C

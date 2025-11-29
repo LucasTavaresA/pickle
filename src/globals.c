@@ -7,33 +7,33 @@
 
 // NOTE(LucasTA): Odd number off colors is not supported XD
 #define COLOR_LIST \
-  X(GRAY)          \
-  X(YELLOW)        \
-  X(GOLD)          \
-  X(ORANGE)        \
-  X(PINK)          \
-  X(RED)           \
-  X(MAROON)        \
-  X(GREEN)         \
-  X(LIME)          \
-  X(DARKGREEN)     \
-  X(SKYBLUE)       \
-  X(BLUE)          \
-  X(DARKBLUE)      \
-  X(PURPLE)        \
-  X(VIOLET)        \
-  X(DARKPURPLE)    \
-  X(BEIGE)         \
-  X(BROWN)         \
-  X(DARKBROWN)     \
-  X(WHITE)         \
-  X(BLACK)         \
-  X(MAGENTA)
+	X(GRAY)          \
+	X(YELLOW)        \
+	X(GOLD)          \
+	X(ORANGE)        \
+	X(PINK)          \
+	X(RED)           \
+	X(MAROON)        \
+	X(GREEN)         \
+	X(LIME)          \
+	X(DARKGREEN)     \
+	X(SKYBLUE)       \
+	X(BLUE)          \
+	X(DARKBLUE)      \
+	X(PURPLE)        \
+	X(VIOLET)        \
+	X(DARKPURPLE)    \
+	X(BEIGE)         \
+	X(BROWN)         \
+	X(DARKBROWN)     \
+	X(WHITE)         \
+	X(BLACK)         \
+	X(MAGENTA)
 
 #define X(color) COLOR_##color,
 enum ColorEnum
 {
-  COLOR_LIST COLORS_AMOUNT
+	COLOR_LIST COLORS_AMOUNT
 };
 #undef X
 
@@ -44,8 +44,8 @@ static const Color COLORS[] = {COLOR_LIST};
 #define SLICE_NAME_SIZE 256
 typedef struct
 {
-  char Name[SLICE_NAME_SIZE];
-  int Color;
+	char Name[SLICE_NAME_SIZE];
+	int Color;
 } Slice;
 
 #define X(color) {#color "\0", COLOR_##color},
@@ -110,10 +110,10 @@ static int TypingIndex = -1;
 
 enum SceneEnum
 {
-  SCENE_WHEEL,
-  SCENE_MENU,
+	SCENE_WHEEL,
+	SCENE_MENU,
 #ifdef PLATFORM_ANDROID
-  SCENE_KEYBOARD
+	SCENE_KEYBOARD
 #endif
 };
 
@@ -121,10 +121,10 @@ static int CurrentScene = SCENE_WHEEL;
 
 enum StateEnum
 {
-  STATE_WINNER_POPUP = -3,
-  STATE_SPINNING = -2,
-  STATE_NO_WINNER = -1,
-  STATE_WINNER = 0,
+	STATE_WINNER_POPUP = -3,
+	STATE_SPINNING = -2,
+	STATE_NO_WINNER = -1,
+	STATE_WINNER = 0,
 };
 
 static int WheelPickedIndex = STATE_NO_WINNER;
@@ -134,16 +134,16 @@ static int WheelPickedIndex = STATE_NO_WINNER;
 #include "../assets/icon_xhdpi.h"
 
 #define ICON_LIST   \
-  X(Window, WINDOW) \
-  X(Menu, MENU)     \
-  X(Trash, TRASH)
+	X(Window, WINDOW) \
+	X(Menu, MENU)     \
+	X(Trash, TRASH)
 
 #define X(Name, NAME)                                               \
-  static Image Name##Image = {NAME##ICON_DATA, NAME##ICON_WIDTH,    \
-                              NAME##ICON_HEIGHT, NAME##ICON_FORMAT, \
-                              PIXELFORMAT_UNCOMPRESSED_R8G8B8A8};   \
-  static Texture2D Name##Texture;
+	static Image Name##Image = {NAME##ICON_DATA, NAME##ICON_WIDTH,    \
+															NAME##ICON_HEIGHT, NAME##ICON_FORMAT, \
+															PIXELFORMAT_UNCOMPRESSED_R8G8B8A8};   \
+	static Texture2D Name##Texture;
 ICON_LIST
 #undef X
 
-#endif  // PICKLE_GLOBALS
+#endif	// PICKLE_GLOBALS

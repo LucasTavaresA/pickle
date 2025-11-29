@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if ! git clang-format --diff; then
+	printf "you forgot to run clang-format!\n"
+	exit 1
+fi
+
+exit 0
