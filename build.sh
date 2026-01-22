@@ -28,8 +28,26 @@ print_help() {
 }
 
 main() {
-	while [ "$#" -gt 0 ]; do
-		case "$1" in
+	if [ "$1" = "windows" ]; then
+		WINDOWS=1
+		BUILD_FLAGS="$BUILD_FLAGS -DPLATFORM_WINDOWS -Wl,--subsystem,windows"
+		LINKING_FLAGS="$LINKING_FLAGS -lgdi32 -lwinmm"
+	elif [ "$1" = "linux" ]; then
+		LINUX=1
+		BUILD_FLAGS="$BUILD_FLAGS $WARNING_FLAGS -DPLATFORM_LINUX"
+	elif [ "$1" = "android" ]; then
+		ANDROID=1
+		BUILD_FLAGS="$BUILD_FLAGS -DPLATFORM_ANDROID"
+	else
+		printf "You need to specify a platform to build!\n\n"
+		print_help
+		exit 1
+	fi
+
+	shift
+
+	for arg in "$@"; do
+		case "$arg" in
 			"-r")
 				RUN=1
 				;;
@@ -42,36 +60,6 @@ main() {
 			"-R")
 				BUILD_FLAGS="$BUILD_FLAGS -DRELEASE"
 				;;
-			"android")
-				if [ "$WINDOWS" = 1 ] || [ "$LINUX" = 1 ]; then
-					printf "You can only build for one platform at a time\n\n"
-					print_help
-					exit 1
-				fi
-
-				ANDROID=1
-				;;
-			"linux")
-				if [ "$WINDOWS" = 1 ] || [ "$ANDROID" = 1 ]; then
-					printf "You can only build for one platform at a time\n\n"
-					print_help
-					exit 1
-				fi
-
-				LINUX=1
-				BUILD_FLAGS="$BUILD_FLAGS $WARNING_FLAGS -DPLATFORM_LINUX"
-				;;
-			"windows")
-				if [ "$LINUX" = 1 ] || [ "$ANDROID" = 1 ]; then
-					printf "You can only build for one platform at a time\n\n"
-					print_help
-					exit 1
-				fi
-
-				WINDOWS=1
-				BUILD_FLAGS="$BUILD_FLAGS -DPLATFORM_WINDOWS -Wl,--subsystem,windows"
-				LINKING_FLAGS="$LINKING_FLAGS -lgdi32 -lwinmm"
-				;;
 			"--help")
 				print_help
 				exit 0
@@ -81,25 +69,16 @@ main() {
 				exit 0
 				;;
 			*)
-				echo "'$1' is not a valid argument!"
+				echo "'$arg' is not a valid argument!"
 				print_help
 				exit 1
 				;;
 		esac
-
-		shift
 	done
 
-	if [ "$LINUX" = 0 ] && [ "$WINDOWS" = 0 ] && [ "$ANDROID" = 0 ]; then
-		printf "You need to specify a platform to build!\n\n"
-		print_help
-		exit 1
-	elif [ "$LINUX" = 1 ] || [ "$WINDOWS" = 1 ]; then
+	if [ "$LINUX" = 1 ] || [ "$WINDOWS" = 1 ]; then
 		if [ "$REBUILD" = 1 ]; then
 			rm -rf ./lib/desktop/
-		fi
-
-		if [ ! -d "./lib/desktop/" ]; then
 			echo "--------------------------------"
 			echo "Building raylib for the desktop!"
 			echo "--------------------------------"
@@ -117,21 +96,22 @@ main() {
 		if [ "$WINDOWS" = 1 ]; then
 			windres $PROGRAM.rc -O coff -o $PROGRAM.res --target=pe-x86-64
 			cc src/main.c $PROGRAM.res $BUILD_FLAGS $LINKING_FLAGS -o $PROGRAM || exit 1
+
+			if [ "$RUN" = 1 ]; then
+				$PROGRAM.exe
+			fi
 		else
 			cc src/main.c $BUILD_FLAGS $LINKING_FLAGS -o $PROGRAM || exit 1
-		fi
 
-		if [ "$RUN" = 1 ]; then
-			./$PROGRAM
+			if [ "$RUN" = 1 ]; then
+				./$PROGRAM
+			fi
 		fi
 
 		exit 0
 	elif [ "$ANDROID" = 1 ]; then
 		if [ "$REDOWNLOAD" = 1 ]; then
 			rm -rf android/sdk android/ndk
-		fi
-
-		if [ ! -d "android/sdk" ] || [ ! -d "android/ndk" ]; then
 			echo "--------------------------------"
 			echo "Downloading android sdk and ndk!"
 			echo "--------------------------------"
@@ -162,13 +142,13 @@ main() {
 				./sdkmanager --install "platform-tools" --sdk_root=../..
 				./sdkmanager --install "platforms;android-29" --sdk_root=../..
 			)
+
+			chmod +x android/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/clang*
+			chmod +x android/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-*
 		fi
 
 		if [ "$REBUILD" = 1 ]; then
-			rm -rf ./lib/armeabi-v7a
-		fi
-
-		if [ ! -d "./lib/armeabi-v7a/" ]; then
+			rm -rf lib/**/libraylib.a
 			echo "--------------------------------"
 			echo "Building raylib for android!"
 			echo "--------------------------------"
