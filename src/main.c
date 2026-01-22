@@ -170,8 +170,8 @@ int main()
 
 	Fonte = LoadFont_Iosevka();
 
-#define X(Name, NAME)                                \
-	Name##Texture = LoadTextureFromImage(Name##Image); \
+#define X(Name, NAME)                                          \
+	Texture2D Name##Texture = LoadTextureFromImage(Name##Image); \
 	SetTextureFilter(Name##Texture, TEXTURE_FILTER_POINT);
 	ICON_LIST
 #undef X
@@ -586,12 +586,9 @@ int main()
 		}
 	}
 
-#define X(Name, NAME)           \
-	UnloadTexture(Name##Texture); \
-	UnloadImage(Name##Image);
+#define X(Name, NAME) UnloadTexture(Name##Texture);
 	ICON_LIST
 #undef X
-	UnloadFont(Fonte);
 	CloseWindow();
 	return 0;
 }

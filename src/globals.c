@@ -135,11 +135,11 @@ static int WheelPickedIndex = STATE_NO_WINNER;
 	X(Menu, MENU)     \
 	X(Trash, TRASH)
 
-#define X(Name, NAME)                                               \
-	static Image Name##Image = {NAME##ICON_DATA, NAME##ICON_WIDTH,    \
-															NAME##ICON_HEIGHT, NAME##ICON_FORMAT, \
-															PIXELFORMAT_UNCOMPRESSED_R8G8B8A8};   \
-	static Texture2D Name##Texture;
+#define X(Name, NAME)                                            \
+	static Image Name##Image = {                                   \
+			NAME##ICON_DATA,	 NAME##ICON_WIDTH, NAME##ICON_HEIGHT, 1, \
+			NAME##ICON_FORMAT,                                         \
+	};
 ICON_LIST
 #undef X
 
