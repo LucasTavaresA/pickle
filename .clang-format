@@ -1,4 +1,5 @@
 BasedOnStyle: Chromium
+SortIncludes: false
 UseTab: Always
 IndentWidth: 2
 TabWidth: 2

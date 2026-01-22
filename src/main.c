@@ -1,13 +1,12 @@
-#define FUNCS                                                          \
-	FUNC(KeyboardPress, char* Buffer, int BufferLength, char KeyPressed) \
-	FUNC(SelectTextField, int FieldIndex)                                \
-	FUNC(ColorPick, int buttonRow, int buttonColumn, int SliceIndex)     \
-	FUNC(AddEntry)                                                       \
-	FUNC(RemoveEntry, int SliceIndex)                                    \
+#define FUNCS                                                      \
+	FUNC(SelectTextField, int FieldIndex)                            \
+	FUNC(ColorPick, int buttonRow, int buttonColumn, int SliceIndex) \
+	FUNC(AddEntry)                                                   \
+	FUNC(RemoveEntry, int SliceIndex)                                \
 	FUNC(ToggleMenu)
 
-#include "../assets/iosevka-regular.h"
 #include "../raylib/src/raylib.h"
+#include "../assets/iosevka-regular.h"
 #include "funcs.c"
 
 #include "draw.c"
@@ -16,26 +15,103 @@
 #include "math.c"
 
 #ifdef PLATFORM_ANDROID
-void KeyboardPressFunc(KeyboardPressArgs args)
+#	include <android_native_app_glue.h>
+#	include <jni.h>
+
+#	define ANDROID_INPUT_BUFFER_SIZE 1024
+static char androidInputBuffer[ANDROID_INPUT_BUFFER_SIZE];
+static int androidInputHead = 0;
+static int androidInputTail = 0;
+static bool androidDeletePressed = false;
+
+// called from JNI when it uses override below
+void AddAndroidInput(char c)
 {
-	if (args.KeyPressed == '<')
+	int nextHead = (androidInputHead + 1) % ANDROID_INPUT_BUFFER_SIZE;
+	if (nextHead != androidInputTail)
 	{
-		args.Buffer[args.BufferLength - 1] = '\0';
-	}
-	else if (args.KeyPressed == '>')
-	{
-		CurrentScene = SCENE_MENU;
-		TypingIndex = -1;
-	}
-	else if (args.BufferLength < SLICE_NAME_SIZE)
-	{
-		args.Buffer[args.BufferLength] = tolower(args.KeyPressed);
-		args.Buffer[args.BufferLength + 1] = '\0';
+		androidInputBuffer[androidInputHead] = c;
+		androidInputHead = nextHead;
 	}
 }
 
-#	define KEYBOARD_ROWS 4
-#	define KEYBOARD_ROW_PERCENTAGE 100 / KEYBOARD_ROWS
+// overriding JNI, called from Java
+JNIEXPORT void JNICALL
+Java_com_lucasta_pickle_NativeLoader_nativeOnTextInput(JNIEnv* env,
+																											 jobject obj,
+																											 jstring text)
+{
+	const char* str = (*env)->GetStringUTFChars(env, text, NULL);
+	if (str != NULL)
+	{
+		for (int i = 0; str[i] != '\0'; i++)
+		{
+			AddAndroidInput(str[i]);
+		}
+	}
+	(*env)->ReleaseStringUTFChars(env, text, str);
+}
+
+// overriding JNI, called from Java
+JNIEXPORT void JNICALL
+Java_com_lucasta_pickle_NativeLoader_nativeOnKeyDelete(JNIEnv* env, jobject obj)
+{
+	androidDeletePressed = true;
+}
+
+// "normal" c functions
+char GetAndroidInput(void)
+{
+	if (androidInputHead == androidInputTail)
+		return 0;
+	char c = androidInputBuffer[androidInputTail];
+	androidInputTail = (androidInputTail + 1) % ANDROID_INPUT_BUFFER_SIZE;
+	return c;
+}
+
+void ShowAndroidKeyboard(void)
+{
+	extern struct android_app* GetAndroidApp(void);
+	struct android_app* app = GetAndroidApp();
+	if (app == NULL)
+		return;
+
+	JNIEnv* env = NULL;
+	JavaVM* vm = app->activity->vm;
+	(*vm)->AttachCurrentThread(vm, &env, NULL);
+
+	jclass activityClass = (*env)->GetObjectClass(env, app->activity->clazz);
+	jmethodID showKeyboard =
+			(*env)->GetMethodID(env, activityClass, "showSoftKeyboard", "()V");
+	if (showKeyboard != NULL)
+	{
+		(*env)->CallVoidMethod(env, app->activity->clazz, showKeyboard);
+	}
+
+	(*vm)->DetachCurrentThread(vm);
+}
+
+void HideAndroidKeyboard(void)
+{
+	extern struct android_app* GetAndroidApp(void);
+	struct android_app* app = GetAndroidApp();
+	if (app == NULL)
+		return;
+
+	JNIEnv* env = NULL;
+	JavaVM* vm = app->activity->vm;
+	(*vm)->AttachCurrentThread(vm, &env, NULL);
+
+	jclass activityClass = (*env)->GetObjectClass(env, app->activity->clazz);
+	jmethodID hideKeyboard =
+			(*env)->GetMethodID(env, activityClass, "hideSoftKeyboard", "()V");
+	if (hideKeyboard != NULL)
+	{
+		(*env)->CallVoidMethod(env, app->activity->clazz, hideKeyboard);
+	}
+
+	(*vm)->DetachCurrentThread(vm);
+}
 #endif
 
 static void SelectTextFieldFunc(SelectTextFieldArgs args)
@@ -316,14 +392,38 @@ int main()
 								else
 								{
 #ifdef PLATFORM_ANDROID
-									CurrentScene = SCENE_KEYBOARD;
-#else
+									ShowAndroidKeyboard();
+#endif
 									DrawTextField(menuEntryTextFieldRect.x,
 																menuEntryTextFieldRect.y,
 																menuEntryTextFieldRect.width,
 																menuEntryTextFieldRect.height, FOREGROUND_COLOR,
 																HIGHLIGHT_COLOR, FOREGROUND_COLOR, FontSize,
 																Border, Slices[i].Name);
+
+#ifdef PLATFORM_ANDROID
+									char inputChar;
+
+									while ((inputChar = GetAndroidInput()) != 0)
+									{
+										int len = strlen(Slices[i].Name);
+										if (len < SLICE_NAME_SIZE - 1)
+										{
+											Slices[i].Name[len] = tolower(inputChar);
+											Slices[i].Name[len + 1] = '\0';
+										}
+									}
+
+									if (androidDeletePressed)
+									{
+										int len = strlen(Slices[i].Name);
+										if (len > 0)
+										{
+											Slices[i].Name[len - 1] = '\0';
+										}
+
+										androidDeletePressed = false;
+									}
 #endif
 								}
 							}
@@ -361,119 +461,12 @@ int main()
 					if (Clicked)
 					{
 						TypingIndex = -1;
+#ifdef PLATFORM_ANDROID
+						HideAndroidKeyboard();
+#endif
 					}
 				}
 				break;
-#ifdef PLATFORM_ANDROID
-				case SCENE_KEYBOARD:
-				{
-					Vector2 sliceNameTextSize = MeasureTextEx(
-							Fonte, Slices[TypingIndex].Name, FontSize * 2, TEXT_SPACING);
-					int keyboardY = ScreenHeight / 1.5;
-
-					Rectangle textFieldRect = {
-							Padding, keyboardY - sliceNameTextSize.y - Padding,
-							ScreenWidth - squareButtonSize - Padding * 2,
-							sliceNameTextSize.y};
-
-					DrawTextField(textFieldRect.x, textFieldRect.y, textFieldRect.width,
-												textFieldRect.height, FOREGROUND_COLOR, HIGHLIGHT_COLOR,
-												FOREGROUND_COLOR, FontSize, Border,
-												Slices[TypingIndex].Name);
-
-#	define KEYBOARD_BUTTON(key, widthPercentage)                            \
-		(Button)                                                               \
-		{                                                                      \
-			.WidthPercentage = widthPercentage, .Text = key,                     \
-			.BorderThickness = Border, .RepeatPresses = true,                    \
-			.TextColor = FOREGROUND_COLOR, .BackgroundColor = HIGHLIGHT_COLOR,   \
-			.PressedColor = PRESSED_COLOR, .HoveredColor = HOVERED_COLOR,        \
-			.BorderColor = FOREGROUND_COLOR, .Callback = KeyboardPressWrapper,   \
-			.CallbackArgs = &(KeyboardPressArgs)                                 \
-			{                                                                    \
-				Slices[TypingIndex].Name, strlen(Slices[TypingIndex].Name), key[0] \
-			}                                                                    \
-		}
-					ButtonRow keyboard[KEYBOARD_ROWS] = {
-							{
-									KEYBOARD_ROW_PERCENTAGE,
-									10,
-									(Button[10]){
-											KEYBOARD_BUTTON("q", 100 / 10),
-											KEYBOARD_BUTTON("w", 100 / 10),
-											KEYBOARD_BUTTON("e", 100 / 10),
-											KEYBOARD_BUTTON("r", 100 / 10),
-											KEYBOARD_BUTTON("t", 100 / 10),
-											KEYBOARD_BUTTON("y", 100 / 10),
-											KEYBOARD_BUTTON("u", 100 / 10),
-											KEYBOARD_BUTTON("i", 100 / 10),
-											KEYBOARD_BUTTON("o", 100 / 10),
-											KEYBOARD_BUTTON("p", 100 / 10),
-									},
-							},
-							{
-									KEYBOARD_ROW_PERCENTAGE,
-									9,
-									(Button[9]){
-											KEYBOARD_BUTTON("a", 100 / 9),
-											KEYBOARD_BUTTON("s", 100 / 9),
-											KEYBOARD_BUTTON("d", 100 / 9),
-											KEYBOARD_BUTTON("f", 100 / 9),
-											KEYBOARD_BUTTON("g", 100 / 9),
-											KEYBOARD_BUTTON("h", 100 / 9),
-											KEYBOARD_BUTTON("j", 100 / 9),
-											KEYBOARD_BUTTON("k", 100 / 9),
-											KEYBOARD_BUTTON("l", 100 / 9),
-									},
-							},
-							{
-									KEYBOARD_ROW_PERCENTAGE,
-									8,
-									(Button[8]){
-											KEYBOARD_BUTTON("z", 100 / 8),
-											KEYBOARD_BUTTON("x", 100 / 8),
-											KEYBOARD_BUTTON("c", 100 / 8),
-											KEYBOARD_BUTTON("v", 100 / 8),
-											KEYBOARD_BUTTON("b", 100 / 8),
-											KEYBOARD_BUTTON("n", 100 / 8),
-											KEYBOARD_BUTTON("m", 100 / 8),
-											(Button){.WidthPercentage = 100 / 8,
-															 .Text = "<-",
-															 .BorderThickness = Border,
-															 .RepeatPresses = true,
-															 .TextColor = RED,
-															 .BackgroundColor = HIGHLIGHT_COLOR,
-															 .PressedColor = RED_PRESSED_COLOR,
-															 .HoveredColor = RED_HOVERED_COLOR,
-															 .BorderColor = RED,
-															 .Callback = KeyboardPressWrapper,
-															 .CallbackArgs =
-																	 &(KeyboardPressArgs){
-																			 Slices[TypingIndex].Name,
-																			 strlen(Slices[TypingIndex].Name), '<'}},
-									},
-							},
-							{KEYBOARD_ROW_PERCENTAGE, 3,
-							 (Button[3]){
-									 (Button){100 / 3},
-									 KEYBOARD_BUTTON(" ", 100 / 3),
-							 }},
-					};
-#	undef KEYBOARD_BUTTON
-
-					DrawButtonGrid(0, keyboardY, ScreenWidth, ScreenHeight - keyboardY, 0,
-												 keyboard, KEYBOARD_ROWS);
-
-					KeyboardPressArgs args = (KeyboardPressArgs){
-							Slices[TypingIndex].Name, strlen(Slices[TypingIndex].Name), '>'};
-					DRAW_BUTTON(cornerButtonRect.x, textFieldRect.y,
-											cornerButtonRect.width, textFieldRect.height, ">",
-											FontSize, false, GREEN, HIGHLIGHT_COLOR,
-											GREEN_PRESSED_COLOR, GREEN_HOVERED_COLOR, GREEN, 1,
-											NO_SHADOW, NO_ICON, KeyboardPress, &args);
-				}
-				break;
-#endif
 				default:
 					// Draw the wheel
 					{

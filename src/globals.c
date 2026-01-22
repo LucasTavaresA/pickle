@@ -111,10 +111,7 @@ static int TypingIndex = -1;
 enum SceneEnum
 {
 	SCENE_WHEEL,
-	SCENE_MENU,
-#ifdef PLATFORM_ANDROID
-	SCENE_KEYBOARD
-#endif
+	SCENE_MENU
 };
 
 static int CurrentScene = SCENE_WHEEL;
