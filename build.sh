@@ -5,8 +5,8 @@ RUN=0
 WINDOWS=0
 LINUX=0
 ANDROID=0
-REDOWNLOAD=0
 REBUILD=0
+BUILD_INPUTS="src/main.c"
 BUILD_FLAGS="-O2 -ggdb"
 WARNING_FLAGS="-Wall -Wextra -Wshadow"
 LINKING_FLAGS="-L./lib/desktop/ -I./raylib/src/ -l:libraylib.a -lm"
@@ -18,11 +18,10 @@ NDK="android-ndk-r26b"
 
 print_help() {
 	printf \
-		"%s [windows|linux|android] [-r -R -d -b]
+		"%s [windows|linux|android] [-r -R -b]
 
 -r           runs after building
 -R           builds with -DRELEASE, disabling debug mode features
--d           re-downloads android sdk and ndk
 -b           rebuild raylib
 -h --help    show help\n" "$0"
 }
@@ -30,11 +29,18 @@ print_help() {
 main() {
 	if [ "$1" = "windows" ]; then
 		WINDOWS=1
+		BUILD_INPUTS="$BUILD_INPUTS $PROGRAM.res"
 		BUILD_FLAGS="$BUILD_FLAGS -DPLATFORM_WINDOWS -Wl,--subsystem,windows"
 		LINKING_FLAGS="$LINKING_FLAGS -lgdi32 -lwinmm"
+		BUILD_OUT="$PROGRAM.exe"
+		RUNCMD="wine $BUILD_OUT"
+		CC="x86_64-w64-mingw32-gcc"
 	elif [ "$1" = "linux" ]; then
 		LINUX=1
 		BUILD_FLAGS="$BUILD_FLAGS $WARNING_FLAGS -DPLATFORM_LINUX"
+		RUNCMD="./$PROGRAM"
+		BUILD_OUT="$PROGRAM"
+		CC="cc"
 	elif [ "$1" = "android" ]; then
 		ANDROID=1
 		BUILD_FLAGS="$BUILD_FLAGS -DPLATFORM_ANDROID"
@@ -50,9 +56,6 @@ main() {
 		case "$arg" in
 			"-r")
 				RUN=1
-				;;
-			"-d")
-				REDOWNLOAD=1
 				;;
 			"-b")
 				REBUILD=1
@@ -77,7 +80,7 @@ main() {
 	done
 
 	if [ "$LINUX" = 1 ] || [ "$WINDOWS" = 1 ]; then
-		if [ "$REBUILD" = 1 ]; then
+		if [ "$REBUILD" = 1 ] || [ ! -f ./lib/desktop/libraylib.a ]; then
 			rm -rf ./lib/desktop/
 			echo "--------------------------------"
 			echo "Building raylib for the desktop!"
@@ -86,7 +89,11 @@ main() {
 			(
 				cd raylib/src/
 				make clean
-				make PLATFORM=PLATFORM_DESKTOP
+				if [ "$WINDOWS" = 1 ]; then
+					make PLATFORM=PLATFORM_DESKTOP CC="$CC" AR=x86_64-w64-mingw32-ar OS=Windows_NT
+				else
+					make PLATFORM=PLATFORM_DESKTOP
+				fi
 				mkdir --parents ../../lib/desktop/
 				mv libraylib.a ../../lib/desktop/
 				make clean
@@ -94,27 +101,24 @@ main() {
 		fi
 
 		if [ "$WINDOWS" = 1 ]; then
-			windres $PROGRAM.rc -O coff -o $PROGRAM.res --target=pe-x86-64
-			cc src/main.c $PROGRAM.res $BUILD_FLAGS $LINKING_FLAGS -o $PROGRAM || exit 1
+			x86_64-w64-mingw32-windres $PROGRAM.rc -O coff -o $PROGRAM.res --target=pe-x86-64
+		fi
 
-			if [ "$RUN" = 1 ]; then
-				$PROGRAM.exe
-			fi
-		else
-			cc src/main.c $BUILD_FLAGS $LINKING_FLAGS -o $PROGRAM || exit 1
+		$CC $BUILD_INPUTS $BUILD_FLAGS $LINKING_FLAGS -o $BUILD_OUT || exit 1
 
-			if [ "$RUN" = 1 ]; then
-				./$PROGRAM
-			fi
+		if [ "$RUN" = 1 ]; then
+			$RUNCMD
 		fi
 
 		exit 0
 	elif [ "$ANDROID" = 1 ]; then
-		if [ "$REDOWNLOAD" = 1 ]; then
-			rm -rf android/sdk android/ndk
+		if [ ! -e "archives/$CMD_TOOLS" ] || [ ! -e "archives/$NDK-linux.zip" ]; then
 			echo "--------------------------------"
 			echo "Downloading android sdk and ndk!"
 			echo "--------------------------------"
+
+			wget -P archives/ "$SOURCE$CMD_TOOLS"
+			wget -P archives/ "$SOURCE$NDK-linux.zip"
 
 			mkdir --parents android/sdk android/build assets lib/armeabi-v7a lib/arm64-v8a lib/x86 lib/x86_64 src
 			(
@@ -123,11 +127,6 @@ main() {
 				mkdir --parents lib/armeabi-v7a lib/arm64-v8a lib/x86 lib/x86_64
 				mkdir --parents res/drawable-ldpi res/drawable-mdpi res/drawable-hdpi res/drawable-xhdpi
 			)
-
-			if [ ! -e "archives/$CMD_TOOLS" ] || [ ! -e "archives/$NDK-linux.zip" ]; then
-				wget -P ./archives/ "$SOURCE$CMD_TOOLS"
-				wget -P ./archives/ "$SOURCE$NDK-linux.zip"
-			fi
 
 			if [ ! -d "android/sdk" ] || [ ! -d "android/ndk" ]; then
 				unzip -n -q ./archives/$CMD_TOOLS -d android/sdk
