@@ -266,6 +266,7 @@ static void DrawWheel(float angle,
 											const Slice* slices,
 											int slice_amount)
 {
+	float inner_circle_radius = radius / 4;
 	Vector2 center = {(float)ScreenWidth / 2, (float)ScreenHeight / 2};
 	float sectionSize = 360.0f / slice_amount;
 	float startAngle = angle;
@@ -280,14 +281,18 @@ static void DrawWheel(float angle,
 		DrawCircleSector(center, radius, startAngle, endAngle, 0,
 										 COLORS[slices[i].Color]);
 
-		float midAngle = ((startAngle + endAngle) / 2) - (float)FontSize / 5;
+		float middleAngle = startAngle + (sectionSize / 2.0f);
+		Vector2 textSize =
+				MeasureTextEx(Fonte, slices[i].Name, FontSize / 1.2f, TEXT_SPACING);
+		float angleRad = middleAngle * DEG2RAD;
 
-		Vector2 labelPosition = {
-				center.x + (radius / 3) * cosf(midAngle * DEG2RAD),
-				center.y + (radius / 3) * sinf(midAngle * DEG2RAD)};
+		float textDistance = inner_circle_radius + Padding * 2;
+		float textX = center.x + cosf(angleRad) * textDistance;
+		float textY = center.y + sinf(angleRad) * textDistance;
 
-		DrawTextPro(Fonte, slices[i].Name, labelPosition, (Vector2){0, 0},
-								midAngle + 10, FontSize, TEXT_SPACING,
+		DrawTextPro(Fonte, slices[i].Name, (Vector2){textX, textY},
+								(Vector2){0.0f, textSize.y / 2.0f}, middleAngle,
+								FontSize / 1.2f, TEXT_SPACING,
 								GetContrastedTextColor(COLORS[slices[i].Color]));
 
 		startAngle += sectionSize;
@@ -295,8 +300,6 @@ static void DrawWheel(float angle,
 	}
 
 	// Draw a circle in the middle of the wheel
-	float inner_circle_radius = radius / 4;
-
 	DrawCircleV(center, inner_circle_radius, FOREGROUND_COLOR);
 	DrawRing(center, inner_circle_radius, inner_circle_radius + Border, 0, 360, 0,
 					 HIGHLIGHT_COLOR);
