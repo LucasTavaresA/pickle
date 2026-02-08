@@ -7,6 +7,6 @@ WORKDIR /build
 
 COPY . .
 
-RUN chmod +x build.sh && ./build.sh linux -R
+RUN chmod +x build.sh && ./build.sh linux -R -b
 
 CMD ["sh"]
