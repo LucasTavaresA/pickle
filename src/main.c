@@ -498,11 +498,6 @@ int main()
 													 WheelAngle + (360.0f / SlicesCount), 0,
 													 HIGHLIGHT_COLOR);
 								}
-								else if (WheelPickedIndex == STATE_WINNER_POPUP)
-								{
-									WaitTime(1);
-									WheelPickedIndex = STATE_NO_WINNER;
-								}
 								else if (WheelPickedIndex >= STATE_WINNER)
 								{
 									Vector2 winnerTextSize =
@@ -522,7 +517,23 @@ int main()
 											GetContrastedTextColor(winnerColor), winnerColor,
 											GetContrastedTextColor(winnerColor), Padding, NO_SHADOW);
 
-									WheelPickedIndex = STATE_WINNER_POPUP;
+									switch (PopupState)
+									{
+										case POPUP_WAITING:
+											WaitTime(1);
+											PopupState = POPUP_DISMISSIBLE;
+											break;
+										case POPUP_DISMISSIBLE:
+											if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+											{
+												PopupState = POPUP_NONE;
+												WheelPickedIndex = STATE_NO_WINNER;
+											}
+											break;
+										default:
+											PopupState = POPUP_WAITING;
+											break;
+									}
 								}
 								else
 								{

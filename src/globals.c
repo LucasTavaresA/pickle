@@ -143,4 +143,13 @@ static int WheelPickedIndex = STATE_NO_WINNER;
 ICON_LIST
 #undef X
 
+typedef enum
+{
+	POPUP_NONE,
+	POPUP_WAITING,
+	POPUP_DISMISSIBLE,
+} PopupEnum;
+
+static PopupEnum PopupState = POPUP_NONE;
+
 #endif	// PICKLE_GLOBALS
