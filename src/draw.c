@@ -5,9 +5,9 @@
 
 #include "../raylib/src/raylib.h"
 
-#include "char.c"
 #include "globals.c"
 #include "log.c"
+#include <ctype.h>
 
 #define CONTRAST_LIMIT 90
 
