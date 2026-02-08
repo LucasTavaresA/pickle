@@ -163,6 +163,7 @@ int main()
 	InitWindow(ScreenWidth, ScreenHeight, APP_NAME);
 #endif
 	SetExitKey(KEY_NULL);
+	SetTargetFPS(144);
 
 #ifndef PLATFORM_ANDROID
 	ChangeDirectory("assets");
@@ -542,13 +543,13 @@ int main()
 													(float)wheelRadius / 4))
 									{
 										WheelPickedIndex = STATE_SPINNING;
-#ifdef PLATFORM_ANDROID
-										WheelAcceleration = GetRandomValue(500, 1000);
-										WheelAccelerationRate = GetRandomValue(2, 4);
-#else
+										// #ifdef PLATFORM_ANDROID
+										// 										WheelAcceleration = GetRandomValue(500, 1000);
+										// 										WheelAccelerationRate = GetRandomValue(2, 4);
+										// #else
 										WheelAcceleration = GetRandomValue(1000, 2000);
-										WheelAccelerationRate = (float)GetRandomValue(2, 4) / 10;
-#endif
+										WheelAccelerationRate = GetRandomValue(2, 4);
+										// #endif
 									}
 									else if (WheelPickedIndex == STATE_SPINNING)
 									{
@@ -579,6 +580,8 @@ int main()
 
 			LogAppend("INFO(Mouse): X %d Y %d PressedX %d PressedY %d \n", MouseX,
 								MouseY, MousePressedX, MousePressedY);
+			LogAppend("FrameTime: %f \n", GetFrameTime());
+			LogAppend("FPS: %d \n", GetFPS());
 			LogDraw();
 			LogSet("");
 
