@@ -539,15 +539,16 @@ static void DrawTextField(int x,
 													char* buffer)
 {
 	size_t nameLength = strlen(buffer);
-	char displayName[nameLength + 2];
-	snprintf(displayName, nameLength + 2, "%s|", buffer);
+	char displayName[SLICE_NAME_SIZE];
+	snprintf(displayName, sizeof(displayName), "%s|", buffer);
 
 	DrawTextBox(x, y, width, height, displayName, fontSize, textColor,
 							backgroundColor, borderColor, BorderThickness, NO_SHADOW);
 
 	if (IsKeyPressed(KEY_BACKSPACE))
 	{
-		buffer[nameLength - 1] = '\0';
+		if (nameLength > 0)
+			buffer[nameLength - 1] = '\0';
 		ButtonPressedTime = 0;
 		KeyRepeatInterval = INITIAL_REPEAT_INTERVAL;
 	}
@@ -557,7 +558,8 @@ static void DrawTextField(int x,
 
 		if (ButtonPressedTime >= KeyRepeatInterval)
 		{
-			buffer[nameLength - 1] = '\0';
+			if (nameLength > 0)
+				buffer[nameLength - 1] = '\0';
 			ButtonPressedTime = 0;
 			KeyRepeatInterval = fmax(KeyRepeatInterval * INITIAL_REPEAT_INTERVAL,
 															 MIN_REPEAT_INTERVAL);
@@ -571,7 +573,8 @@ static void DrawTextField(int x,
 		{
 			int keycode = GetCharPressed();
 
-			if (nameLength < SLICE_NAME_SIZE && (keycode == ' ' || isalnum(keycode)))
+			if (nameLength < SLICE_NAME_SIZE - 1 &&
+					(keycode == ' ' || isalnum(keycode)))
 			{
 				buffer[nameLength] = tolower(keycode);
 				buffer[nameLength + 1] = '\0';

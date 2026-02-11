@@ -37,7 +37,7 @@ main() {
 		CC="x86_64-w64-mingw32-gcc"
 	elif [ "$1" = "linux" ]; then
 		LINUX=1
-		BUILD_FLAGS="$BUILD_FLAGS $WARNING_FLAGS -DPLATFORM_LINUX"
+		BUILD_FLAGS="$BUILD_FLAGS $WARNING_FLAGS -fsanitize=undefined,address -DPLATFORM_LINUX"
 		RUNCMD="./$PROGRAM"
 		BUILD_OUT="$PROGRAM"
 		CC="cc"
