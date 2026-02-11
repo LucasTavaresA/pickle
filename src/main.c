@@ -1,3 +1,8 @@
+#ifndef clamp
+#	define clamp(val, min_val, max_val) \
+		((val) > (max_val) ? (max_val) : ((val) < (min_val) ? (min_val) : (val)))
+#endif
+
 #define FUNCS                                                      \
 	FUNC(SelectTextField, int FieldIndex)                            \
 	FUNC(ColorPick, int buttonRow, int buttonColumn, int SliceIndex) \
@@ -5,14 +10,12 @@
 	FUNC(RemoveEntry, int SliceIndex)                                \
 	FUNC(ToggleMenu)
 
-#include "../raylib/src/raylib.h"
+#include "globals.c"
 #include "../assets/iosevka-regular.h"
 #include "funcs.c"
 
 #include "draw.c"
-#include "globals.c"
 #include "log.c"
-#include "math.c"
 
 #ifdef PLATFORM_ANDROID
 #	include <android_native_app_glue.h>

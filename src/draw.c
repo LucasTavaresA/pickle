@@ -3,8 +3,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "../raylib/src/raylib.h"
-
 #include "globals.c"
 #include "log.c"
 #include <ctype.h>
