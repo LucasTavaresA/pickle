@@ -2,6 +2,8 @@
 #define PICKLE_GLOBALS
 
 #include "../raylib/src/raylib.h"
+// NOTE(LucasTA): shut msvc up!
+#define CLITERAL(type)
 
 #define ARRAY_LENGTH(arr) sizeof(arr) / sizeof(arr[0])
 
@@ -71,16 +73,16 @@ static const Color HIGHLIGHT_COLOR = WHITE;
 static const Color HOVERED_COLOR = GRAY;
 static const Color PRESSED_COLOR = DARKGRAY;
 static const Color RED_PRESSED_COLOR = MAROON;
-static const Color RED_HOVERED_COLOR = (Color){255, 122, 122, 255};
+static const Color RED_HOVERED_COLOR = {255, 122, 122, 255};
 static const Color GREEN_PRESSED_COLOR = DARKGREEN;
-static const Color GREEN_HOVERED_COLOR = (Color){255, 255, 122, 255};
+static const Color GREEN_HOVERED_COLOR = {255, 255, 122, 255};
 
 #ifdef PLATFORM_ANDROID
 static Vector2 StartTouchPosition;
 static int TouchCount = 0;
 static const float INITIAL_REPEAT_INTERVAL = 0.8f;
 #else
-static const float INITIAL_REPEAT_INTERVAL = 0.3f;
+#	define INITIAL_REPEAT_INTERVAL 0.3f
 static float MouseScroll = 0;
 #endif
 
@@ -152,4 +154,6 @@ typedef enum
 
 static PopupEnum PopupState = POPUP_NONE;
 
+// NOTE(LucasTA): shut msvc up!
+#define CLITERAL(type) (type)
 #endif	// PICKLE_GLOBALS
