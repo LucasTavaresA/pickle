@@ -79,9 +79,9 @@ typedef struct
 	Button* Columns;
 } ButtonRow;
 
-static const ShadowStyle NO_SHADOW = (ShadowStyle){0};
-static const Texture2D NO_ICON = (Texture2D){0};
-static const Rectangle ICON_RECTANGLE = (Rectangle){0, 0, 24, 24};
+static const ShadowStyle NO_SHADOW = {0};
+static const Texture2D NO_ICON = {0};
+static const Rectangle ICON_RECTANGLE = {0, 0, 24, 24};
 
 static void DrawShadow(int x,
 											 int y,
