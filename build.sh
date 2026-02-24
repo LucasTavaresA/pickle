@@ -37,10 +37,9 @@ main() {
 		CC="x86_64-w64-mingw32-gcc"
 	elif [ "$1" = "linux" ]; then
 		LINUX=1
-		BUILD_FLAGS="$BUILD_FLAGS $WARNING_FLAGS -fsanitize=undefined,address -DPLATFORM_LINUX"
+		BUILD_FLAGS="$BUILD_FLAGS $WARNING_FLAGS -DPLATFORM_LINUX"
 		RUNCMD="./$PROGRAM"
 		BUILD_OUT="$PROGRAM"
-		CC="cc"
 	elif [ "$1" = "android" ]; then
 		ANDROID=1
 		BUILD_FLAGS="$BUILD_FLAGS -DPLATFORM_ANDROID"
@@ -104,7 +103,7 @@ main() {
 			x86_64-w64-mingw32-windres $PROGRAM.rc -O coff -o $PROGRAM.res --target=pe-x86-64
 		fi
 
-		$CC $BUILD_INPUTS $BUILD_FLAGS $LINKING_FLAGS -o $BUILD_OUT || exit 1
+		${CC:-cc} $BUILD_INPUTS $BUILD_FLAGS $LINKING_FLAGS -o $BUILD_OUT || exit 1
 
 		if [ "$RUN" = 1 ]; then
 			$RUNCMD
